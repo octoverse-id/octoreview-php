@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Every job name below is a final required check in the `main: require PR + green CI` ruleset
+# (.github/rulesets/main-require-pr-green-ci.json). Jobs marked octoreview:placeholder are
+# bootstrap stand-ins that pass so the ruleset could be set once; each is replaced by the real
+# job in its feature PR. `make release-check` fails while any placeholder remains.
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    # Explicit timeouts everywhere: the default is 360 minutes and every job here is required.
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Lint GitHub Actions workflows
+        # Pinned actionlint via `go install` (checksum-verified by the Go module database).
+        run: |
+          go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+          "$(go env GOPATH)/bin/actionlint" -color
+      - name: Check llms.txt links
+        run: make llms-check
+
+  test:
+    # octoreview:placeholder
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      matrix:
+        php-version: ["8.2", "8.3", "8.4"]
+    steps:
+      - name: Bootstrap placeholder
+        run: echo "octoreview:placeholder - 'test' becomes a real job in its feature PR"
+
+  contract:
+    # octoreview:placeholder
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Bootstrap placeholder
+        run: echo "octoreview:placeholder - 'contract' becomes a real job in its feature PR"
+
+  integration:
+    # octoreview:placeholder
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Bootstrap placeholder
+        run: echo "octoreview:placeholder - 'integration' becomes a real job in its feature PR"

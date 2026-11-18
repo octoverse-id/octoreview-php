@@ -1,0 +1,21 @@
+version: 2
+updates:
+  # The composer block (versioning-strategy: lockfile-only, minor+patch grouped) lands in the
+  # PR that adds this repository's first manifest; Dependabot errors on an ecosystem with no
+  # manifest. dependabot-auto-merge.yml already allows `composer` for that day.
+  - package-ecosystem: "github-actions"
+    directories:
+      - "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    groups:
+      github-actions:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
+        patterns:
+          - "*"

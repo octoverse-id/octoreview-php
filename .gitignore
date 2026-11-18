@@ -1,0 +1,12 @@
+# Local code review artifacts (see AGENTS.md)
+code-review/*
+!code-review/.gitkeep
+
+# Environment and editor files
+.env
+.env.*
+!.env.example
+.octoreview-dev.env
+.DS_Store
+.idea/
+.vscode/

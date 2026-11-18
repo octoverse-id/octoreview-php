@@ -1,0 +1,18 @@
+# octoreview-php
+
+> Official PHP SDK for Octoreview: multi-tenant reviews, ratings and review media. Part of the octoverse family, modelled on octonomy. Status: bootstrapped; release
+> line 1 in progress.
+
+Gates: `make check` (fast, toolchain only) and `make release-check` (full). `make help` lists
+every target.
+
+## Docs
+
+- [Agent rules](AGENTS.md): product rules, gates and the development pipeline
+- [README](README.md)
+- [Contributing](CONTRIBUTING.md)
+- [Security policy](SECURITY.md)
+- [Changelog](CHANGELOG.md)
+- [Release runbook](docs/release.md)
+- [Versioning policy](docs/versioning.md)
+- [Rulesets](.github/rulesets/README.md): the live rulesets' reviewable mirror
