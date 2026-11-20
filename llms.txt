@@ -1,7 +1,8 @@
 # octoreview-php
 
-> Official PHP SDK for Octoreview: multi-tenant reviews, ratings and review media. Part of the octoverse family, modelled on octonomy. Status: bootstrapped; release
-> line 1 in progress.
+> Official PHP SDK for Octoreview: multi-tenant reviews, ratings and review media. Part of the octoverse family, modelled on octonomy. Status: the client core and every
+> REST operation are in; uploads, webhooks and the integration suite are next; release line 1 in
+> progress.
 
 Gates: `make check` (fast, toolchain only) and `make release-check` (full). `make help` lists
 every target.
@@ -13,6 +14,15 @@ every target.
 - [Contributing](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)
 - [Changelog](CHANGELOG.md)
+- [Architecture](docs/architecture.md): layout, parameters, the contract gate and retries
 - [Release runbook](docs/release.md)
 - [Versioning policy](docs/versioning.md)
 - [Rulesets](.github/rulesets/README.md): the live rulesets' reviewable mirror
+
+## Code
+
+- [Client](src/Client.php): construction, `fromEnv()` and the resource accessors
+- [Operation table](src/Operations.php): every REST operation, its retry class and parameters
+- [Transport](src/Transport.php): parameter checks, headers, retries and errors
+- [Contract gate](tests/ContractTest.php): the checks against the vendored server contract
+- [Vendored contract](testdata/contract/SOURCE): the server commit the contract gate checks against

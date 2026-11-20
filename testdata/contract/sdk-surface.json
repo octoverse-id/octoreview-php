@@ -1,0 +1,561 @@
+{
+ "helpers": [
+  {
+   "composes": [
+    "createMediaUpload",
+    "completeMediaUpload",
+    "deleteMedia"
+   ],
+   "go": "Media.UploadFile",
+   "js": "media.uploadFile",
+   "name": "uploadFile",
+   "php": "media()->uploadFile",
+   "summary": "Intent, PUT and complete for a file path; infers content type and size."
+  },
+  {
+   "composes": [
+    "createMediaUpload",
+    "completeMediaUpload",
+    "deleteMedia"
+   ],
+   "go": "Media.UploadBytes",
+   "js": "media.uploadBytes",
+   "name": "uploadBytes",
+   "php": "media()->uploadBytes",
+   "summary": "Intent, PUT and complete for an in-memory body and a content type."
+  },
+  {
+   "composes": [
+    "createMediaUpload",
+    "completeMediaUpload",
+    "deleteMedia"
+   ],
+   "go": "Media.UploadStream",
+   "js": "media.uploadStream",
+   "name": "uploadStream",
+   "php": "media()->uploadStream",
+   "summary": "Intent, PUT and complete for a rewindable stream with an explicit size."
+  },
+  {
+   "composes": [
+    "lookupEntity"
+   ],
+   "go": "Ratings.Get",
+   "js": "ratings.get",
+   "name": "ratingsByKey",
+   "php": "ratings()->get",
+   "summary": "The rating summary of `{entityType, externalId}` without knowing the entity id."
+  },
+  {
+   "composes": [],
+   "go": "Webhooks.Verify",
+   "js": "webhooks.verify",
+   "name": "verifyWebhook",
+   "php": "webhooks()->verify",
+   "summary": "Check `X-Octoreview-Signature` (300 s tolerance) and decode the typed event."
+  }
+ ],
+ "operations": [
+  {
+   "go": "Health.Live",
+   "js": "health.live",
+   "operation": "getHealthLive",
+   "optional": [],
+   "php": "health()->live",
+   "required": [],
+   "retry": "safe"
+  },
+  {
+   "go": "Health.Ready",
+   "js": "health.ready",
+   "operation": "getHealthReady",
+   "optional": [],
+   "php": "health()->ready",
+   "required": [],
+   "retry": "safe"
+  },
+  {
+   "go": "Entities.List",
+   "js": "entities.list",
+   "operation": "listEntities",
+   "optional": [
+    "application_id",
+    "include_global",
+    "entity_type",
+    "external_id",
+    "is_active",
+    "limit",
+    "offset"
+   ],
+   "php": "entities()->list",
+   "required": [],
+   "retry": "safe"
+  },
+  {
+   "go": "Entities.Upsert",
+   "js": "entities.upsert",
+   "operation": "upsertEntity",
+   "optional": [
+    "metadata",
+    "max_images",
+    "max_videos",
+    "max_image_bytes",
+    "max_video_bytes"
+   ],
+   "php": "entities()->upsert",
+   "required": [
+    "application_id",
+    "entity_type",
+    "external_id"
+   ],
+   "retry": "idempotent"
+  },
+  {
+   "go": "Entities.Lookup",
+   "js": "entities.lookup",
+   "operation": "lookupEntity",
+   "optional": [
+    "include_global"
+   ],
+   "php": "entities()->lookup",
+   "required": [
+    "application_id",
+    "entity_type",
+    "external_id"
+   ],
+   "retry": "safe"
+  },
+  {
+   "go": "Entities.Get",
+   "js": "entities.get",
+   "operation": "getEntity",
+   "optional": [
+    "application_id",
+    "include_global"
+   ],
+   "php": "entities()->get",
+   "required": [
+    "entity_id"
+   ],
+   "retry": "safe"
+  },
+  {
+   "go": "Entities.Update",
+   "js": "entities.update",
+   "operation": "updateEntity",
+   "optional": [
+    "application_id",
+    "metadata",
+    "max_images",
+    "max_videos",
+    "max_image_bytes",
+    "max_video_bytes",
+    "is_active"
+   ],
+   "php": "entities()->update",
+   "required": [
+    "entity_id"
+   ],
+   "retry": "idempotent"
+  },
+  {
+   "go": "Entities.Deactivate",
+   "js": "entities.deactivate",
+   "operation": "deactivateEntity",
+   "optional": [
+    "application_id"
+   ],
+   "php": "entities()->deactivate",
+   "required": [
+    "entity_id"
+   ],
+   "retry": "idempotent"
+  },
+  {
+   "go": "Ratings.ForEntity",
+   "js": "ratings.forEntity",
+   "operation": "getEntityRating",
+   "optional": [
+    "application_id",
+    "include_global"
+   ],
+   "php": "ratings()->forEntity",
+   "required": [
+    "entity_id"
+   ],
+   "retry": "safe"
+  },
+  {
+   "go": "Ratings.Query",
+   "js": "ratings.query",
+   "operation": "queryRatings",
+   "optional": [
+    "include_global"
+   ],
+   "php": "ratings()->query",
+   "required": [
+    "application_id",
+    "entity_type",
+    "external_ids"
+   ],
+   "retry": "safe"
+  },
+  {
+   "go": "Settings.Get",
+   "js": "settings.get",
+   "operation": "getApplicationSettings",
+   "optional": [],
+   "php": "settings()->get",
+   "required": [
+    "application_id"
+   ],
+   "retry": "safe"
+  },
+  {
+   "go": "Settings.Put",
+   "js": "settings.put",
+   "operation": "putApplicationSettings",
+   "optional": [],
+   "php": "settings()->put",
+   "required": [
+    "application_id",
+    "max_images",
+    "max_videos",
+    "max_image_bytes",
+    "max_video_bytes",
+    "allowed_content_types",
+    "moderation_mode",
+    "max_storage_bytes"
+   ],
+   "retry": "idempotent"
+  },
+  {
+   "go": "Reviews.List",
+   "js": "reviews.list",
+   "operation": "listReviews",
+   "optional": [
+    "application_id",
+    "include_global",
+    "entity_id",
+    "entity_type",
+    "external_id",
+    "author_id",
+    "include_unpublished",
+    "status",
+    "rating",
+    "has_media",
+    "is_verified_purchase",
+    "has_pending_revision",
+    "media_moderation_status",
+    "sort",
+    "limit",
+    "offset"
+   ],
+   "php": "reviews()->list",
+   "required": [],
+   "retry": "safe"
+  },
+  {
+   "go": "Reviews.Create",
+   "js": "reviews.create",
+   "operation": "createReview",
+   "optional": [
+    "entity_id",
+    "entity_type",
+    "external_id",
+    "title",
+    "body",
+    "metadata",
+    "author_metadata",
+    "source_ref",
+    "is_verified_purchase"
+   ],
+   "php": "reviews()->create",
+   "required": [
+    "application_id",
+    "author_id",
+    "rating"
+   ],
+   "retry": "unsafe"
+  },
+  {
+   "go": "Reviews.Get",
+   "js": "reviews.get",
+   "operation": "getReview",
+   "optional": [
+    "application_id",
+    "include_global",
+    "author_id",
+    "include_unpublished"
+   ],
+   "php": "reviews()->get",
+   "required": [
+    "review_id"
+   ],
+   "retry": "safe"
+  },
+  {
+   "go": "Reviews.Update",
+   "js": "reviews.update",
+   "operation": "updateReview",
+   "optional": [
+    "application_id",
+    "rating",
+    "title",
+    "body",
+    "metadata",
+    "author_metadata",
+    "is_verified_purchase"
+   ],
+   "php": "reviews()->update",
+   "required": [
+    "review_id"
+   ],
+   "retry": "unsafe"
+  },
+  {
+   "go": "Reviews.Remove",
+   "js": "reviews.remove",
+   "operation": "removeReview",
+   "optional": [
+    "application_id"
+   ],
+   "php": "reviews()->remove",
+   "required": [
+    "review_id"
+   ],
+   "retry": "unsafe"
+  },
+  {
+   "go": "Reviews.Publish",
+   "js": "reviews.publish",
+   "operation": "publishReview",
+   "optional": [
+    "application_id",
+    "reason"
+   ],
+   "php": "reviews()->publish",
+   "required": [
+    "review_id",
+    "expected_version",
+    "expected_media_version"
+   ],
+   "retry": "unsafe"
+  },
+  {
+   "go": "Reviews.Reject",
+   "js": "reviews.reject",
+   "operation": "rejectReview",
+   "optional": [
+    "application_id",
+    "reason"
+   ],
+   "php": "reviews()->reject",
+   "required": [
+    "review_id"
+   ],
+   "retry": "unsafe"
+  },
+  {
+   "go": "Reviews.Hide",
+   "js": "reviews.hide",
+   "operation": "hideReview",
+   "optional": [
+    "application_id",
+    "reason"
+   ],
+   "php": "reviews()->hide",
+   "required": [
+    "review_id"
+   ],
+   "retry": "unsafe"
+  },
+  {
+   "go": "Reviews.GetRevision",
+   "js": "reviews.getRevision",
+   "operation": "getReviewRevision",
+   "optional": [
+    "application_id"
+   ],
+   "php": "reviews()->getRevision",
+   "required": [
+    "review_id"
+   ],
+   "retry": "safe"
+  },
+  {
+   "go": "Reviews.ApproveRevision",
+   "js": "reviews.approveRevision",
+   "operation": "approveReviewRevision",
+   "optional": [
+    "application_id"
+   ],
+   "php": "reviews()->approveRevision",
+   "required": [
+    "review_id",
+    "revision_id",
+    "expected_version",
+    "expected_media_version"
+   ],
+   "retry": "unsafe"
+  },
+  {
+   "go": "Reviews.RejectRevision",
+   "js": "reviews.rejectRevision",
+   "operation": "rejectReviewRevision",
+   "optional": [
+    "application_id"
+   ],
+   "php": "reviews()->rejectRevision",
+   "required": [
+    "review_id",
+    "revision_id"
+   ],
+   "retry": "unsafe"
+  },
+  {
+   "go": "Media.List",
+   "js": "media.list",
+   "operation": "listReviewMedia",
+   "optional": [
+    "application_id",
+    "include_global",
+    "author_id",
+    "include_unpublished"
+   ],
+   "php": "media()->list",
+   "required": [
+    "review_id"
+   ],
+   "retry": "safe"
+  },
+  {
+   "go": "Media.CreateUpload",
+   "idempotency_key": "client_upload_id",
+   "js": "media.createUpload",
+   "operation": "createMediaUpload",
+   "optional": [
+    "application_id",
+    "client_upload_id",
+    "position",
+    "width",
+    "height",
+    "duration_seconds"
+   ],
+   "php": "media()->createUpload",
+   "required": [
+    "review_id",
+    "kind",
+    "content_type",
+    "size_bytes"
+   ],
+   "retry": "keyed"
+  },
+  {
+   "go": "Media.Complete",
+   "js": "media.complete",
+   "operation": "completeMediaUpload",
+   "optional": [
+    "application_id"
+   ],
+   "php": "media()->complete",
+   "required": [
+    "review_id",
+    "media_id"
+   ],
+   "retry": "idempotent"
+  },
+  {
+   "go": "Media.Delete",
+   "js": "media.delete",
+   "operation": "deleteMedia",
+   "optional": [
+    "application_id"
+   ],
+   "php": "media()->delete",
+   "required": [
+    "review_id",
+    "media_id"
+   ],
+   "retry": "idempotent"
+  },
+  {
+   "go": "Media.Approve",
+   "js": "media.approve",
+   "operation": "approveMedia",
+   "optional": [
+    "application_id",
+    "reason"
+   ],
+   "php": "media()->approve",
+   "required": [
+    "review_id",
+    "media_id",
+    "expected_version",
+    "expected_media_version"
+   ],
+   "retry": "unsafe"
+  },
+  {
+   "go": "Media.Reject",
+   "js": "media.reject",
+   "operation": "rejectMedia",
+   "optional": [
+    "application_id",
+    "reason"
+   ],
+   "php": "media()->reject",
+   "required": [
+    "review_id",
+    "media_id"
+   ],
+   "retry": "idempotent"
+  },
+  {
+   "operation": "uploadMediaBytes",
+   "reason": "The upload helpers PUT to `upload.url` as returned; it is never built from this path.",
+   "sdk": "none"
+  },
+  {
+   "operation": "downloadMedia",
+   "reason": "Media `url` values are handed to browsers and players as returned.",
+   "sdk": "none"
+  },
+  {
+   "go": "Authors.Erase",
+   "js": "authors.erase",
+   "operation": "eraseAuthor",
+   "optional": [],
+   "php": "authors()->erase",
+   "required": [
+    "application_id",
+    "author_id"
+   ],
+   "retry": "idempotent"
+  },
+  {
+   "go": "AuditLogs.List",
+   "js": "auditLogs.list",
+   "operation": "listAuditLogs",
+   "optional": [
+    "application_id",
+    "include_global",
+    "action",
+    "aggregate_type",
+    "aggregate_id",
+    "actor_id",
+    "limit",
+    "offset"
+   ],
+   "php": "auditLogs()->list",
+   "required": [],
+   "retry": "safe"
+  }
+ ],
+ "retry_classes": {
+  "idempotent": "Repeating a success leaves the same state and answer. The SDK retries like a read.",
+  "keyed": "Idempotent when the idempotency field is sent. The SDK generates one when the caller does not, then retries like a read.",
+  "safe": "A read. The SDK retries on timeouts, 503 and 429, honoring Retry-After.",
+  "unsafe": "Never retried automatically. After a lost response a repeat may answer 409; read the resource to learn the outcome."
+ }
+}

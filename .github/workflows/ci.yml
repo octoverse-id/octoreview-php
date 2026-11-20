@@ -14,9 +14,9 @@ concurrency:
   cancel-in-progress: true
 
 # Every job name below is a final required check in the `main: require PR + green CI` ruleset
-# (.github/rulesets/main-require-pr-green-ci.json). Jobs marked octoreview:placeholder are
-# bootstrap stand-ins that pass so the ruleset could be set once; each is replaced by the real
-# job in its feature PR. `make release-check` fails while any placeholder remains.
+# (.github/rulesets/main-require-pr-green-ci.json). The integration job is still a bootstrap
+# stand-in that passes so the ruleset could be set once; it becomes the real job with the
+# integration suite. `make release-check` fails while any stand-in remains.
 
 jobs:
   static:
@@ -32,25 +32,54 @@ jobs:
           "$(go env GOPATH)/bin/actionlint" -color
       - name: Check llms.txt links
         run: make llms-check
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: "8.2"
+          coverage: none
+          tools: composer:v2
+      - name: Validate composer.json
+        run: make validate
+      - name: Install dependencies
+        run: make install
+      - name: Coding style (php-cs-fixer)
+        run: make cs
+      - name: Static analysis (PHPStan level 8)
+        run: make stan
 
   test:
-    # octoreview:placeholder
+    name: test (${{ matrix.php-version }})
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
+      fail-fast: false
       matrix:
         php-version: ["8.2", "8.3", "8.4"]
     steps:
-      - name: Bootstrap placeholder
-        run: echo "octoreview:placeholder - 'test' becomes a real job in its feature PR"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: none
+          tools: composer:v2
+      - name: Install dependencies
+        run: make install
+      - name: Unit tests
+        run: make test
 
   contract:
-    # octoreview:placeholder
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
-      - name: Bootstrap placeholder
-        run: echo "octoreview:placeholder - 'contract' becomes a real job in its feature PR"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: "8.2"
+          coverage: none
+          tools: composer:v2
+      - name: Install dependencies
+        run: make install
+      - name: Contract gate (offline, against testdata/contract)
+        run: make contract
 
   integration:
     # octoreview:placeholder

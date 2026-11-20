@@ -1,11 +1,40 @@
 .DEFAULT_GOAL := help
 SHELL := /bin/bash
 
-# Bootstrap Makefile for octoreview-php. Targets are added by the PRs that add the code they gate;
-# `make check` stays toolchain-only (no Docker, no network) and `make release-check` is the full gate.
+# `make check` is the fast gate: PHP and Composer only (no Docker, no network once dependencies are
+# installed). `make release-check` is the full gate. CI runs the same targets.
+
+# PHP_CS_FIXER_IGNORE_ENV lets php-cs-fixer run on a PHP newer than it declares support for.
+export PHP_CS_FIXER_IGNORE_ENV := 1
 
 help: ## List available targets
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-20s %s\n", $$1, $$2}'
+
+vendor/autoload.php: composer.json
+	@composer install --no-interaction --no-progress --quiet
+
+install: vendor/autoload.php ## Install the Composer dependencies
+
+validate: ## Validate composer.json
+	@composer validate --strict --quiet && echo "composer.json OK"
+
+cs: vendor/autoload.php ## Check the coding style (php-cs-fixer, PER-CS 2.0)
+	@vendor/bin/php-cs-fixer fix --dry-run --diff
+
+cs-fix: vendor/autoload.php ## Apply the coding style
+	@vendor/bin/php-cs-fixer fix
+
+stan: vendor/autoload.php ## Static analysis (PHPStan level 8)
+	@vendor/bin/phpstan analyse --no-progress --memory-limit=512M
+
+test: vendor/autoload.php ## Run the unit tests (offline)
+	@vendor/bin/phpunit --exclude-group contract
+
+contract: vendor/autoload.php ## Run the offline contract gate against testdata/contract (server docs/spec.md section 18)
+	@vendor/bin/phpunit --group contract
+
+vendor-contract: ## Refresh testdata/contract from the server (SERVER=<ref or checkout path>, default main; network)
+	@./scripts/vendor-contract.sh $(or $(SERVER),main)
 
 llms-check: ## Fail when llms.txt links a missing local path (and prove the check can fail)
 	@./scripts/check-llms-txt.sh
@@ -19,11 +48,11 @@ placeholder-check: ## Fail while any bootstrap CI placeholder job remains
 		echo "placeholder-check: bootstrap placeholder jobs remain; replace them before a release" >&2; exit 1; \
 	fi; echo "placeholder-check OK"
 
-check: llms-check ## Fast gate (toolchain only)
+check: validate cs stan test contract llms-check ## Fast gate (PHP and Composer only)
 
 release-check: check placeholder-check ## Full pre-release gate (fails while placeholders remain)
 
 export-rulesets: ## Export the live rulesets into .github/rulesets/ (needs gh with repo admin)
 	@./scripts/export-rulesets.sh
 
-.PHONY: help llms-check actionlint placeholder-check check release-check export-rulesets
+.PHONY: help install validate cs cs-fix stan test contract vendor-contract llms-check actionlint placeholder-check check release-check export-rulesets
