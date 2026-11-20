@@ -1,0 +1,3987 @@
+{
+ "components": {
+  "headers": {
+   "RetryAfter": {
+    "description": "Seconds to wait before retrying.",
+    "schema": {
+     "type": "integer"
+    }
+   }
+  },
+  "parameters": {
+   "ActorId": {
+    "description": "Recorded in the audit log.",
+    "in": "header",
+    "name": "X-Actor-ID",
+    "schema": {
+     "maxLength": 255,
+     "type": "string"
+    }
+   },
+   "ApplicationIdQuery": {
+    "description": "The application the request acts in. Required when the key is bound to applications;\na write may send it in the body instead. Path, query and body must agree.\n",
+    "in": "query",
+    "name": "application_id",
+    "schema": {
+     "$ref": "#/components/schemas/ScopeId"
+    }
+   },
+   "AuthorId": {
+    "in": "query",
+    "name": "author_id",
+    "schema": {
+     "maxLength": 255,
+     "type": "string"
+    }
+   },
+   "EntityId": {
+    "in": "path",
+    "name": "entity_id",
+    "required": true,
+    "schema": {
+     "format": "uuid",
+     "type": "string"
+    }
+   },
+   "IncludeGlobal": {
+    "description": "On a namespaced read, also return global rows the grant covers.",
+    "in": "query",
+    "name": "include_global",
+    "schema": {
+     "enum": [
+      "true",
+      "false"
+     ],
+     "type": "string"
+    }
+   },
+   "IncludeUnpublished": {
+    "description": "With `author_id`, the author path (the author's non-removed reviews and media).",
+    "in": "query",
+    "name": "include_unpublished",
+    "schema": {
+     "enum": [
+      "true",
+      "false"
+     ],
+     "type": "string"
+    }
+   },
+   "Limit": {
+    "in": "query",
+    "name": "limit",
+    "schema": {
+     "default": 20,
+     "maximum": 100,
+     "minimum": 1,
+     "type": "integer"
+    }
+   },
+   "MediaId": {
+    "in": "path",
+    "name": "media_id",
+    "required": true,
+    "schema": {
+     "format": "uuid",
+     "type": "string"
+    }
+   },
+   "NamespaceId": {
+    "in": "header",
+    "name": "X-Namespace-ID",
+    "schema": {
+     "maxLength": 100,
+     "type": "string"
+    }
+   },
+   "NamespaceType": {
+    "description": "Send with `X-Namespace-ID`, or neither (global). `global` is reserved.",
+    "in": "header",
+    "name": "X-Namespace-Type",
+    "schema": {
+     "maxLength": 100,
+     "type": "string"
+    }
+   },
+   "Offset": {
+    "in": "query",
+    "name": "offset",
+    "schema": {
+     "default": 0,
+     "maximum": 10000,
+     "minimum": 0,
+     "type": "integer"
+    }
+   },
+   "ReviewId": {
+    "in": "path",
+    "name": "review_id",
+    "required": true,
+    "schema": {
+     "format": "uuid",
+     "type": "string"
+    }
+   },
+   "TenantId": {
+    "in": "header",
+    "name": "X-Tenant-ID",
+    "required": true,
+    "schema": {
+     "$ref": "#/components/schemas/ScopeId"
+    }
+   },
+   "Token": {
+    "description": "A signed token taken from a URL the API returned.",
+    "in": "path",
+    "name": "token",
+    "required": true,
+    "schema": {
+     "type": "string"
+    }
+   }
+  },
+  "responses": {
+   "BadRequest": {
+    "content": {
+     "application/json": {
+      "schema": {
+       "$ref": "#/components/schemas/Error"
+      }
+     }
+    },
+    "description": "`validation_error`, `invalid_namespace`, `application_mismatch`, `media_too_large`,\n`content_type_not_allowed`.\n"
+   },
+   "Conflict": {
+    "content": {
+     "application/json": {
+      "schema": {
+       "$ref": "#/components/schemas/Error"
+      }
+     }
+    },
+    "description": "`review_exists`, `entity_inactive`, `invalid_transition`, `review_changed`,\n`revision_superseded`, `revision_stale`, `source_ref_immutable`,\n`review_not_accepting_media`, `media_limit_exceeded`, `storage_quota_exceeded`,\n`upload_expired`, `upload_not_found`, `upload_changed`, `complete_in_progress`,\n`upload_already_completed`.\n",
+    "headers": {
+     "Retry-After": {
+      "$ref": "#/components/headers/RetryAfter"
+     }
+    }
+   },
+   "Error": {
+    "content": {
+     "application/json": {
+      "schema": {
+       "$ref": "#/components/schemas/Error"
+      }
+     }
+    },
+    "description": "Any error; see `error.code`."
+   },
+   "Forbidden": {
+    "content": {
+     "application/json": {
+      "schema": {
+       "$ref": "#/components/schemas/Error"
+      }
+     }
+    },
+    "description": "`permission_denied`, `upload_token_invalid`, `media_token_invalid`."
+   },
+   "Gone": {
+    "content": {
+     "application/json": {
+      "schema": {
+       "$ref": "#/components/schemas/Error"
+      }
+     }
+    },
+    "description": "`upload_token_expired`, `media_token_expired`."
+   },
+   "LengthRequired": {
+    "content": {
+     "application/json": {
+      "schema": {
+       "$ref": "#/components/schemas/Error"
+      }
+     }
+    },
+    "description": "`content_length_required`."
+   },
+   "NotFound": {
+    "content": {
+     "application/json": {
+      "schema": {
+       "$ref": "#/components/schemas/Error"
+      }
+     }
+    },
+    "description": "`not_found`: missing, or outside the key's tenant, application or namespace."
+   },
+   "PayloadTooLarge": {
+    "content": {
+     "application/json": {
+      "schema": {
+       "$ref": "#/components/schemas/Error"
+      }
+     }
+    },
+    "description": "`upload_too_large`."
+   },
+   "RangeNotSatisfiable": {
+    "content": {
+     "application/json": {
+      "schema": {
+       "$ref": "#/components/schemas/Error"
+      }
+     }
+    },
+    "description": "`range_not_satisfiable`, with `Content-Range: bytes */<size>`."
+   },
+   "ServiceUnavailable": {
+    "content": {
+     "application/json": {
+      "schema": {
+       "$ref": "#/components/schemas/Error"
+      }
+     }
+    },
+    "description": "`storage_unavailable`, `storage_credentials_expiring`, `too_many_completions`.",
+    "headers": {
+     "Retry-After": {
+      "$ref": "#/components/headers/RetryAfter"
+     }
+    }
+   },
+   "Unauthorized": {
+    "content": {
+     "application/json": {
+      "schema": {
+       "$ref": "#/components/schemas/Error"
+      }
+     }
+    },
+    "description": "`authentication_required`, `invalid_api_key`."
+   },
+   "Unprocessable": {
+    "content": {
+     "application/json": {
+      "schema": {
+       "$ref": "#/components/schemas/Error"
+      }
+     }
+    },
+    "description": "`media_rejected`, with `details.reason`."
+   }
+  },
+  "schemas": {
+   "ApplicationSettings": {
+    "properties": {
+     "allowed_content_types": {
+      "items": {
+       "$ref": "#/components/schemas/ContentType"
+      },
+      "type": [
+       "array",
+       "null"
+      ]
+     },
+     "application_id": {
+      "type": "string"
+     },
+     "max_image_bytes": {
+      "$ref": "#/components/schemas/NullableCount"
+     },
+     "max_images": {
+      "$ref": "#/components/schemas/NullableCount"
+     },
+     "max_storage_bytes": {
+      "$ref": "#/components/schemas/NullableCount"
+     },
+     "max_video_bytes": {
+      "$ref": "#/components/schemas/NullableCount"
+     },
+     "max_videos": {
+      "$ref": "#/components/schemas/NullableCount"
+     },
+     "moderation_mode": {
+      "oneOf": [
+       {
+        "$ref": "#/components/schemas/ModerationMode"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "reserved_bytes": {
+      "description": "Computed SUM of live pending uploads.",
+      "type": "integer"
+     },
+     "stored_bytes": {
+      "description": "Computed SUM of ready and deleting media.",
+      "type": "integer"
+     },
+     "tenant_id": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "tenant_id",
+     "application_id",
+     "max_images",
+     "max_videos",
+     "max_image_bytes",
+     "max_video_bytes",
+     "allowed_content_types",
+     "moderation_mode",
+     "max_storage_bytes",
+     "stored_bytes",
+     "reserved_bytes"
+    ],
+    "type": "object"
+   },
+   "ApplicationSettingsPut": {
+    "description": "Every field is required; send null to inherit the server default.",
+    "properties": {
+     "allowed_content_types": {
+      "items": {
+       "$ref": "#/components/schemas/ContentType"
+      },
+      "minItems": 1,
+      "type": [
+       "array",
+       "null"
+      ]
+     },
+     "max_image_bytes": {
+      "$ref": "#/components/schemas/NullableCount"
+     },
+     "max_images": {
+      "$ref": "#/components/schemas/NullableCount"
+     },
+     "max_storage_bytes": {
+      "$ref": "#/components/schemas/NullableCount"
+     },
+     "max_video_bytes": {
+      "$ref": "#/components/schemas/NullableCount"
+     },
+     "max_videos": {
+      "$ref": "#/components/schemas/NullableCount"
+     },
+     "moderation_mode": {
+      "oneOf": [
+       {
+        "$ref": "#/components/schemas/ModerationMode"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "required": [
+     "max_images",
+     "max_videos",
+     "max_image_bytes",
+     "max_video_bytes",
+     "allowed_content_types",
+     "moderation_mode",
+     "max_storage_bytes"
+    ],
+    "type": "object"
+   },
+   "ApplicationSettingsResponse": {
+    "properties": {
+     "data": {
+      "$ref": "#/components/schemas/ApplicationSettings"
+     }
+    },
+    "required": [
+     "data"
+    ],
+    "type": "object"
+   },
+   "AuditLog": {
+    "properties": {
+     "action": {
+      "type": "string"
+     },
+     "actor_id": {
+      "$ref": "#/components/schemas/NullableString"
+     },
+     "aggregate_id": {
+      "type": "string"
+     },
+     "aggregate_type": {
+      "type": "string"
+     },
+     "application_id": {
+      "$ref": "#/components/schemas/NullableString"
+     },
+     "changes": {
+      "$ref": "#/components/schemas/JsonObject"
+     },
+     "created_at": {
+      "$ref": "#/components/schemas/Timestamp"
+     },
+     "id": {
+      "format": "uuid",
+      "type": "string"
+     },
+     "metadata": {
+      "$ref": "#/components/schemas/JsonObject"
+     },
+     "namespace_id": {
+      "$ref": "#/components/schemas/NullableString"
+     },
+     "namespace_type": {
+      "$ref": "#/components/schemas/NullableString"
+     },
+     "operation_id": {
+      "format": "uuid",
+      "type": "string"
+     },
+     "request_id": {
+      "$ref": "#/components/schemas/NullableString"
+     },
+     "tenant_id": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "tenant_id",
+     "application_id",
+     "namespace_type",
+     "namespace_id",
+     "action",
+     "aggregate_type",
+     "aggregate_id",
+     "actor_id",
+     "request_id",
+     "operation_id",
+     "changes",
+     "metadata",
+     "created_at"
+    ],
+    "type": "object"
+   },
+   "AuditLogList": {
+    "properties": {
+     "data": {
+      "items": {
+       "$ref": "#/components/schemas/AuditLog"
+      },
+      "type": "array"
+     },
+     "pagination": {
+      "$ref": "#/components/schemas/Pagination"
+     }
+    },
+    "required": [
+     "data",
+     "pagination"
+    ],
+    "type": "object"
+   },
+   "BatchRating": {
+    "properties": {
+     "entity_id": {
+      "description": "Null when no entity has this key; the summary is then all zeros.",
+      "format": "uuid",
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "external_id": {
+      "type": "string"
+     },
+     "histogram": {
+      "$ref": "#/components/schemas/Histogram"
+     },
+     "histogram_percent": {
+      "$ref": "#/components/schemas/HistogramPercent"
+     },
+     "namespace_id": {
+      "$ref": "#/components/schemas/NullableString"
+     },
+     "namespace_type": {
+      "$ref": "#/components/schemas/NullableString"
+     },
+     "rating_average": {
+      "$ref": "#/components/schemas/RatingAverage"
+     },
+     "rating_count": {
+      "minimum": 0,
+      "type": "integer"
+     },
+     "verified_review_count": {
+      "minimum": 0,
+      "type": "integer"
+     }
+    },
+    "required": [
+     "external_id",
+     "entity_id",
+     "namespace_type",
+     "namespace_id",
+     "rating_count",
+     "rating_average",
+     "histogram",
+     "histogram_percent",
+     "verified_review_count"
+    ],
+    "type": "object"
+   },
+   "ContentType": {
+    "enum": [
+     "image/jpeg",
+     "image/png",
+     "image/webp",
+     "video/mp4",
+     "video/webm",
+     "video/quicktime"
+    ],
+    "type": "string"
+   },
+   "Entity": {
+    "properties": {
+     "application_id": {
+      "type": "string"
+     },
+     "created_at": {
+      "$ref": "#/components/schemas/Timestamp"
+     },
+     "entity_type": {
+      "type": "string"
+     },
+     "external_id": {
+      "type": "string"
+     },
+     "id": {
+      "format": "uuid",
+      "type": "string"
+     },
+     "is_active": {
+      "type": "boolean"
+     },
+     "media_policy": {
+      "$ref": "#/components/schemas/MediaPolicy"
+     },
+     "metadata": {
+      "$ref": "#/components/schemas/JsonObject"
+     },
+     "namespace_id": {
+      "$ref": "#/components/schemas/NullableString"
+     },
+     "namespace_type": {
+      "$ref": "#/components/schemas/NullableString"
+     },
+     "rating": {
+      "$ref": "#/components/schemas/RatingSummary"
+     },
+     "tenant_id": {
+      "type": "string"
+     },
+     "updated_at": {
+      "$ref": "#/components/schemas/Timestamp"
+     }
+    },
+    "required": [
+     "id",
+     "tenant_id",
+     "application_id",
+     "namespace_type",
+     "namespace_id",
+     "entity_type",
+     "external_id",
+     "metadata",
+     "is_active",
+     "media_policy",
+     "rating",
+     "created_at",
+     "updated_at"
+    ],
+    "type": "object"
+   },
+   "EntityList": {
+    "properties": {
+     "data": {
+      "items": {
+       "$ref": "#/components/schemas/Entity"
+      },
+      "type": "array"
+     },
+     "pagination": {
+      "$ref": "#/components/schemas/Pagination"
+     }
+    },
+    "required": [
+     "data",
+     "pagination"
+    ],
+    "type": "object"
+   },
+   "EntityPatch": {
+    "properties": {
+     "is_active": {
+      "description": "true reactivates the entity.",
+      "type": "boolean"
+     },
+     "max_image_bytes": {
+      "$ref": "#/components/schemas/NullableCount"
+     },
+     "max_images": {
+      "$ref": "#/components/schemas/NullableCount"
+     },
+     "max_video_bytes": {
+      "$ref": "#/components/schemas/NullableCount"
+     },
+     "max_videos": {
+      "$ref": "#/components/schemas/NullableCount"
+     },
+     "metadata": {
+      "$ref": "#/components/schemas/JsonObject"
+     }
+    },
+    "type": "object"
+   },
+   "EntityRating": {
+    "properties": {
+     "entity_id": {
+      "format": "uuid",
+      "type": "string"
+     },
+     "histogram": {
+      "$ref": "#/components/schemas/Histogram"
+     },
+     "histogram_percent": {
+      "$ref": "#/components/schemas/HistogramPercent"
+     },
+     "rating_average": {
+      "$ref": "#/components/schemas/RatingAverage"
+     },
+     "rating_count": {
+      "minimum": 0,
+      "type": "integer"
+     },
+     "verified_review_count": {
+      "minimum": 0,
+      "type": "integer"
+     }
+    },
+    "required": [
+     "entity_id",
+     "rating_count",
+     "rating_average",
+     "histogram",
+     "histogram_percent",
+     "verified_review_count"
+    ],
+    "type": "object"
+   },
+   "EntityResponse": {
+    "properties": {
+     "data": {
+      "$ref": "#/components/schemas/Entity"
+     }
+    },
+    "required": [
+     "data"
+    ],
+    "type": "object"
+   },
+   "EntityUpsert": {
+    "properties": {
+     "application_id": {
+      "$ref": "#/components/schemas/ScopeId"
+     },
+     "entity_type": {
+      "pattern": "^[a-z0-9][a-z0-9_.-]{0,99}$",
+      "type": "string"
+     },
+     "external_id": {
+      "maxLength": 255,
+      "minLength": 1,
+      "type": "string"
+     },
+     "max_image_bytes": {
+      "$ref": "#/components/schemas/NullableCount"
+     },
+     "max_images": {
+      "$ref": "#/components/schemas/NullableCount"
+     },
+     "max_video_bytes": {
+      "$ref": "#/components/schemas/NullableCount"
+     },
+     "max_videos": {
+      "$ref": "#/components/schemas/NullableCount"
+     },
+     "metadata": {
+      "$ref": "#/components/schemas/JsonObject"
+     }
+    },
+    "required": [
+     "application_id",
+     "entity_type",
+     "external_id"
+    ],
+    "type": "object"
+   },
+   "EraseRequest": {
+    "properties": {
+     "application_id": {
+      "$ref": "#/components/schemas/ScopeId"
+     },
+     "author_id": {
+      "maxLength": 255,
+      "type": "string"
+     }
+    },
+    "required": [
+     "application_id",
+     "author_id"
+    ],
+    "type": "object"
+   },
+   "EraseResult": {
+    "properties": {
+     "pending_media_deletes": {
+      "description": "Media moved to `deleting`; `cleanup_media` deletes the objects.",
+      "minimum": 0,
+      "type": "integer"
+     },
+     "remaining": {
+      "description": "Reviews still to redact; call again while above 0.",
+      "minimum": 0,
+      "type": "integer"
+     },
+     "reviews_redacted": {
+      "minimum": 0,
+      "type": "integer"
+     }
+    },
+    "required": [
+     "reviews_redacted",
+     "pending_media_deletes",
+     "remaining"
+    ],
+    "type": "object"
+   },
+   "Error": {
+    "properties": {
+     "error": {
+      "properties": {
+       "code": {
+        "$ref": "#/components/schemas/ErrorCode"
+       },
+       "details": {
+        "description": "Code-specific fields; `docs/errors.md` lists them per code.",
+        "type": "object"
+       },
+       "doc_url": {
+        "format": "uri",
+        "type": "string"
+       },
+       "message": {
+        "description": "Ends with the fix the caller can apply.",
+        "type": "string"
+       },
+       "request_id": {
+        "$ref": "#/components/schemas/NullableString"
+       },
+       "retryable": {
+        "type": "boolean"
+       }
+      },
+      "required": [
+       "code",
+       "message",
+       "details",
+       "request_id",
+       "doc_url",
+       "retryable"
+      ],
+      "type": "object"
+     }
+    },
+    "required": [
+     "error"
+    ],
+    "type": "object"
+   },
+   "ErrorCode": {
+    "description": "Every code the server sends; `docs/errors.md#<code>` explains each.",
+    "enum": [
+     "validation_error",
+     "invalid_namespace",
+     "application_mismatch",
+     "media_too_large",
+     "content_type_not_allowed",
+     "authentication_required",
+     "invalid_api_key",
+     "permission_denied",
+     "upload_token_invalid",
+     "media_token_invalid",
+     "not_found",
+     "method_not_allowed",
+     "not_acceptable",
+     "review_exists",
+     "entity_inactive",
+     "invalid_transition",
+     "review_changed",
+     "revision_superseded",
+     "revision_stale",
+     "source_ref_immutable",
+     "review_not_accepting_media",
+     "media_limit_exceeded",
+     "storage_quota_exceeded",
+     "upload_expired",
+     "upload_not_found",
+     "upload_changed",
+     "complete_in_progress",
+     "upload_already_completed",
+     "upload_token_expired",
+     "media_token_expired",
+     "content_length_required",
+     "upload_too_large",
+     "unsupported_media_type",
+     "range_not_satisfiable",
+     "media_rejected",
+     "internal_error",
+     "storage_unavailable",
+     "storage_credentials_expiring",
+     "too_many_completions"
+    ],
+    "type": "string"
+   },
+   "HealthLive": {
+    "properties": {
+     "status": {
+      "enum": [
+       "ok"
+      ],
+      "type": "string"
+     }
+    },
+    "required": [
+     "status"
+    ],
+    "type": "object"
+   },
+   "HealthReadyResponse": {
+    "properties": {
+     "data": {
+      "properties": {
+       "database": {
+        "enum": [
+         "ok",
+         "down"
+        ],
+        "type": "string"
+       },
+       "status": {
+        "enum": [
+         "ok",
+         "unavailable"
+        ],
+        "type": "string"
+       }
+      },
+      "required": [
+       "status",
+       "database"
+      ],
+      "type": "object"
+     }
+    },
+    "required": [
+     "data"
+    ],
+    "type": "object"
+   },
+   "Histogram": {
+    "description": "Published reviews per star.",
+    "properties": {
+     "1": {
+      "minimum": 0,
+      "type": "integer"
+     },
+     "2": {
+      "minimum": 0,
+      "type": "integer"
+     },
+     "3": {
+      "minimum": 0,
+      "type": "integer"
+     },
+     "4": {
+      "minimum": 0,
+      "type": "integer"
+     },
+     "5": {
+      "minimum": 0,
+      "type": "integer"
+     }
+    },
+    "required": [
+     "1",
+     "2",
+     "3",
+     "4",
+     "5"
+    ],
+    "type": "object"
+   },
+   "HistogramPercent": {
+    "description": "One decimal each; not guaranteed to sum to 100; all zeros when the count is 0.",
+    "properties": {
+     "1": {
+      "type": "number"
+     },
+     "2": {
+      "type": "number"
+     },
+     "3": {
+      "type": "number"
+     },
+     "4": {
+      "type": "number"
+     },
+     "5": {
+      "type": "number"
+     }
+    },
+    "required": [
+     "1",
+     "2",
+     "3",
+     "4",
+     "5"
+    ],
+    "type": "object"
+   },
+   "JsonObject": {
+    "description": "A JSON object chosen by the caller (bounded in size and depth).",
+    "type": "object"
+   },
+   "Media": {
+    "properties": {
+     "content_type": {
+      "$ref": "#/components/schemas/ContentType"
+     },
+     "created_at": {
+      "$ref": "#/components/schemas/Timestamp"
+     },
+     "duration_seconds": {
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     "height": {
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     "id": {
+      "format": "uuid",
+      "type": "string"
+     },
+     "kind": {
+      "enum": [
+       "image",
+       "video"
+      ],
+      "type": "string"
+     },
+     "moderation_status": {
+      "$ref": "#/components/schemas/ModerationStatus"
+     },
+     "position": {
+      "minimum": 0,
+      "type": "integer"
+     },
+     "review_id": {
+      "format": "uuid",
+      "type": "string"
+     },
+     "size_bytes": {
+      "minimum": 1,
+      "type": "integer"
+     },
+     "status": {
+      "$ref": "#/components/schemas/MediaStatus"
+     },
+     "upload_expires_at": {
+      "$ref": "#/components/schemas/Timestamp"
+     },
+     "url": {
+      "description": "Null when the caller may not see the media. With `url_unavailable` set, the URL\ncould not be signed right now; retry the read.\n",
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "url_expires_at": {
+      "$ref": "#/components/schemas/Timestamp",
+      "description": "Present on signed URLs."
+     },
+     "url_unavailable": {
+      "enum": [
+       "signing"
+      ],
+      "type": "string"
+     },
+     "width": {
+      "type": [
+       "integer",
+       "null"
+      ]
+     }
+    },
+    "required": [
+     "id",
+     "review_id",
+     "kind",
+     "status",
+     "moderation_status",
+     "content_type",
+     "size_bytes",
+     "width",
+     "height",
+     "duration_seconds",
+     "position",
+     "upload_expires_at",
+     "created_at",
+     "url"
+    ],
+    "type": "object"
+   },
+   "MediaApprove": {
+    "properties": {
+     "expected_media_version": {
+      "minimum": 1,
+      "type": "integer"
+     },
+     "expected_version": {
+      "minimum": 1,
+      "type": "integer"
+     },
+     "reason": {
+      "maxLength": 500,
+      "type": [
+       "string",
+       "null"
+      ]
+     }
+    },
+    "required": [
+     "expected_version",
+     "expected_media_version"
+    ],
+    "type": "object"
+   },
+   "MediaIntent": {
+    "properties": {
+     "client_upload_id": {
+      "description": "Makes the intent safe to retry; a retry replays the same row.",
+      "maxLength": 100,
+      "type": "string"
+     },
+     "content_type": {
+      "$ref": "#/components/schemas/ContentType"
+     },
+     "duration_seconds": {
+      "minimum": 0,
+      "type": [
+       "number",
+       "null"
+      ]
+     },
+     "height": {
+      "minimum": 1,
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     "kind": {
+      "enum": [
+       "image",
+       "video"
+      ],
+      "type": "string"
+     },
+     "position": {
+      "default": 0,
+      "minimum": 0,
+      "type": "integer"
+     },
+     "size_bytes": {
+      "minimum": 1,
+      "type": "integer"
+     },
+     "width": {
+      "minimum": 1,
+      "type": [
+       "integer",
+       "null"
+      ]
+     }
+    },
+    "required": [
+     "kind",
+     "content_type",
+     "size_bytes"
+    ],
+    "type": "object"
+   },
+   "MediaIntentResponse": {
+    "properties": {
+     "data": {
+      "properties": {
+       "media": {
+        "$ref": "#/components/schemas/Media"
+       },
+       "upload": {
+        "oneOf": [
+         {
+          "$ref": "#/components/schemas/UploadTarget"
+         },
+         {
+          "type": "null"
+         }
+        ]
+       }
+      },
+      "required": [
+       "media",
+       "upload"
+      ],
+      "type": "object"
+     }
+    },
+    "required": [
+     "data"
+    ],
+    "type": "object"
+   },
+   "MediaPolicy": {
+    "description": "The entity's overrides; null inherits the application, then the server default.",
+    "properties": {
+     "max_image_bytes": {
+      "$ref": "#/components/schemas/NullableCount"
+     },
+     "max_images": {
+      "$ref": "#/components/schemas/NullableCount"
+     },
+     "max_video_bytes": {
+      "$ref": "#/components/schemas/NullableCount"
+     },
+     "max_videos": {
+      "$ref": "#/components/schemas/NullableCount"
+     }
+    },
+    "required": [
+     "max_images",
+     "max_videos",
+     "max_image_bytes",
+     "max_video_bytes"
+    ],
+    "type": "object"
+   },
+   "MediaResponse": {
+    "properties": {
+     "data": {
+      "$ref": "#/components/schemas/Media"
+     }
+    },
+    "required": [
+     "data"
+    ],
+    "type": "object"
+   },
+   "MediaStatus": {
+    "enum": [
+     "pending",
+     "ready",
+     "invalid",
+     "deleting",
+     "deleted"
+    ],
+    "type": "string"
+   },
+   "ModerationMode": {
+    "enum": [
+     "auto_publish",
+     "pre_moderation"
+    ],
+    "type": "string"
+   },
+   "ModerationReason": {
+    "properties": {
+     "reason": {
+      "maxLength": 500,
+      "type": [
+       "string",
+       "null"
+      ]
+     }
+    },
+    "type": "object"
+   },
+   "ModerationStatus": {
+    "enum": [
+     "none",
+     "pending",
+     "approved",
+     "rejected"
+    ],
+    "type": "string"
+   },
+   "NullableCount": {
+    "minimum": 0,
+    "type": [
+     "integer",
+     "null"
+    ]
+   },
+   "NullableString": {
+    "type": [
+     "string",
+     "null"
+    ]
+   },
+   "NullableTimestamp": {
+    "format": "date-time",
+    "type": [
+     "string",
+     "null"
+    ]
+   },
+   "Pagination": {
+    "properties": {
+     "count": {
+      "description": "Total rows matching the filters.",
+      "type": "integer"
+     },
+     "limit": {
+      "type": "integer"
+     },
+     "offset": {
+      "type": "integer"
+     }
+    },
+    "required": [
+     "limit",
+     "offset",
+     "count"
+    ],
+    "type": "object"
+   },
+   "RatingAverage": {
+    "description": "Two decimals; null when `rating_count` is 0.",
+    "type": [
+     "number",
+     "null"
+    ]
+   },
+   "RatingSummary": {
+    "properties": {
+     "histogram": {
+      "$ref": "#/components/schemas/Histogram"
+     },
+     "histogram_percent": {
+      "$ref": "#/components/schemas/HistogramPercent"
+     },
+     "rating_average": {
+      "$ref": "#/components/schemas/RatingAverage"
+     },
+     "rating_count": {
+      "description": "Published reviews.",
+      "minimum": 0,
+      "type": "integer"
+     },
+     "verified_review_count": {
+      "minimum": 0,
+      "type": "integer"
+     }
+    },
+    "required": [
+     "rating_count",
+     "rating_average",
+     "histogram",
+     "histogram_percent",
+     "verified_review_count"
+    ],
+    "type": "object"
+   },
+   "RatingsQuery": {
+    "properties": {
+     "application_id": {
+      "$ref": "#/components/schemas/ScopeId"
+     },
+     "entity_type": {
+      "type": "string"
+     },
+     "external_ids": {
+      "items": {
+       "maxLength": 255,
+       "minLength": 1,
+       "type": "string"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "type": "array"
+     }
+    },
+    "required": [
+     "application_id",
+     "entity_type",
+     "external_ids"
+    ],
+    "type": "object"
+   },
+   "Review": {
+    "properties": {
+     "application_id": {
+      "type": "string"
+     },
+     "author_id": {
+      "description": "The caller's author id; `erased:<hmac>` after erasure.",
+      "type": "string"
+     },
+     "author_metadata": {
+      "$ref": "#/components/schemas/JsonObject"
+     },
+     "body": {
+      "$ref": "#/components/schemas/NullableString"
+     },
+     "created_at": {
+      "$ref": "#/components/schemas/Timestamp"
+     },
+     "entity_id": {
+      "format": "uuid",
+      "type": "string"
+     },
+     "entity_type": {
+      "type": "string"
+     },
+     "external_id": {
+      "type": "string"
+     },
+     "id": {
+      "format": "uuid",
+      "type": "string"
+     },
+     "is_verified_purchase": {
+      "type": "boolean"
+     },
+     "media": {
+      "description": "Ready media, at most `OCTOREVIEW_LIST_MEDIA_LIMIT` (default 10).",
+      "items": {
+       "$ref": "#/components/schemas/Media"
+      },
+      "type": "array"
+     },
+     "media_truncated": {
+      "description": "True when more media exist; `GET /reviews/{review_id}/media` returns them all.",
+      "type": "boolean"
+     },
+     "media_version": {
+      "description": "Bumps on every media state change.",
+      "minimum": 1,
+      "type": "integer"
+     },
+     "metadata": {
+      "$ref": "#/components/schemas/JsonObject"
+     },
+     "namespace_id": {
+      "$ref": "#/components/schemas/NullableString"
+     },
+     "namespace_type": {
+      "$ref": "#/components/schemas/NullableString"
+     },
+     "published_at": {
+      "$ref": "#/components/schemas/NullableTimestamp"
+     },
+     "rating": {
+      "maximum": 5,
+      "minimum": 1,
+      "type": "integer"
+     },
+     "source_ref": {
+      "$ref": "#/components/schemas/NullableString"
+     },
+     "status": {
+      "$ref": "#/components/schemas/ReviewStatus"
+     },
+     "status_reason": {
+      "$ref": "#/components/schemas/NullableString"
+     },
+     "tenant_id": {
+      "type": "string"
+     },
+     "title": {
+      "$ref": "#/components/schemas/NullableString"
+     },
+     "updated_at": {
+      "$ref": "#/components/schemas/Timestamp"
+     },
+     "version": {
+      "description": "Bumps on every content or status change.",
+      "minimum": 1,
+      "type": "integer"
+     }
+    },
+    "required": [
+     "id",
+     "tenant_id",
+     "application_id",
+     "namespace_type",
+     "namespace_id",
+     "entity_id",
+     "entity_type",
+     "external_id",
+     "author_id",
+     "author_metadata",
+     "rating",
+     "title",
+     "body",
+     "status",
+     "status_reason",
+     "metadata",
+     "source_ref",
+     "is_verified_purchase",
+     "version",
+     "media_version",
+     "media",
+     "media_truncated",
+     "published_at",
+     "created_at",
+     "updated_at"
+    ],
+    "type": "object"
+   },
+   "ReviewCreate": {
+    "description": "Send `entity_id`, or `entity_type` with `external_id`, not both.",
+    "properties": {
+     "application_id": {
+      "$ref": "#/components/schemas/ScopeId"
+     },
+     "author_id": {
+      "description": "Derive it from your own authenticated user, never from client input.",
+      "maxLength": 255,
+      "type": "string"
+     },
+     "author_metadata": {
+      "$ref": "#/components/schemas/JsonObject",
+      "description": "Display data such as `display_name`; `avatar_url` must be https."
+     },
+     "body": {
+      "maxLength": 10000,
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "entity_id": {
+      "format": "uuid",
+      "type": "string"
+     },
+     "entity_type": {
+      "pattern": "^[a-z0-9][a-z0-9_.-]{0,99}$",
+      "type": "string"
+     },
+     "external_id": {
+      "maxLength": 255,
+      "minLength": 1,
+      "type": "string"
+     },
+     "is_verified_purchase": {
+      "description": "Needs `reviews:attest`.",
+      "type": "boolean"
+     },
+     "metadata": {
+      "$ref": "#/components/schemas/JsonObject"
+     },
+     "rating": {
+      "maximum": 5,
+      "minimum": 1,
+      "type": "integer"
+     },
+     "source_ref": {
+      "description": "An order or booking id. Needs `reviews:attest`; set only at creation.",
+      "maxLength": 255,
+      "type": "string"
+     },
+     "title": {
+      "maxLength": 200,
+      "type": [
+       "string",
+       "null"
+      ]
+     }
+    },
+    "required": [
+     "application_id",
+     "author_id",
+     "rating"
+    ],
+    "type": "object"
+   },
+   "ReviewList": {
+    "properties": {
+     "data": {
+      "items": {
+       "$ref": "#/components/schemas/Review"
+      },
+      "type": "array"
+     },
+     "pagination": {
+      "$ref": "#/components/schemas/Pagination"
+     }
+    },
+    "required": [
+     "data",
+     "pagination"
+    ],
+    "type": "object"
+   },
+   "ReviewPatch": {
+    "properties": {
+     "author_metadata": {
+      "$ref": "#/components/schemas/JsonObject"
+     },
+     "body": {
+      "maxLength": 10000,
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "is_verified_purchase": {
+      "description": "Needs `reviews:attest`.",
+      "type": "boolean"
+     },
+     "metadata": {
+      "$ref": "#/components/schemas/JsonObject"
+     },
+     "rating": {
+      "maximum": 5,
+      "minimum": 1,
+      "type": "integer"
+     },
+     "title": {
+      "maxLength": 200,
+      "type": [
+       "string",
+       "null"
+      ]
+     }
+    },
+    "type": "object"
+   },
+   "ReviewPublish": {
+    "properties": {
+     "expected_media_version": {
+      "minimum": 1,
+      "type": "integer"
+     },
+     "expected_version": {
+      "minimum": 1,
+      "type": "integer"
+     },
+     "reason": {
+      "maxLength": 500,
+      "type": [
+       "string",
+       "null"
+      ]
+     }
+    },
+    "required": [
+     "expected_version",
+     "expected_media_version"
+    ],
+    "type": "object"
+   },
+   "ReviewResponse": {
+    "properties": {
+     "data": {
+      "$ref": "#/components/schemas/Review"
+     }
+    },
+    "required": [
+     "data"
+    ],
+    "type": "object"
+   },
+   "ReviewStatus": {
+    "enum": [
+     "pending",
+     "published",
+     "rejected",
+     "hidden",
+     "removed"
+    ],
+    "type": "string"
+   },
+   "Revision": {
+    "properties": {
+     "base_version": {
+      "description": "The review version the edit was made against.",
+      "type": "integer"
+     },
+     "body": {
+      "$ref": "#/components/schemas/NullableString"
+     },
+     "created_at": {
+      "$ref": "#/components/schemas/Timestamp"
+     },
+     "id": {
+      "format": "uuid",
+      "type": "string"
+     },
+     "rating": {
+      "maximum": 5,
+      "minimum": 1,
+      "type": "integer"
+     },
+     "review_id": {
+      "format": "uuid",
+      "type": "string"
+     },
+     "title": {
+      "$ref": "#/components/schemas/NullableString"
+     }
+    },
+    "required": [
+     "id",
+     "review_id",
+     "rating",
+     "title",
+     "body",
+     "base_version",
+     "created_at"
+    ],
+    "type": "object"
+   },
+   "RevisionApprove": {
+    "properties": {
+     "expected_media_version": {
+      "minimum": 1,
+      "type": "integer"
+     },
+     "expected_version": {
+      "minimum": 1,
+      "type": "integer"
+     },
+     "revision_id": {
+      "format": "uuid",
+      "type": "string"
+     }
+    },
+    "required": [
+     "revision_id",
+     "expected_version",
+     "expected_media_version"
+    ],
+    "type": "object"
+   },
+   "RevisionReject": {
+    "properties": {
+     "revision_id": {
+      "format": "uuid",
+      "type": "string"
+     }
+    },
+    "required": [
+     "revision_id"
+    ],
+    "type": "object"
+   },
+   "ScopeId": {
+    "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$",
+    "type": "string"
+   },
+   "Timestamp": {
+    "format": "date-time",
+    "type": "string"
+   },
+   "UploadTarget": {
+    "properties": {
+     "expires_at": {
+      "$ref": "#/components/schemas/Timestamp"
+     },
+     "headers": {
+      "additionalProperties": {
+       "type": "string"
+      },
+      "description": "Exactly the headers to send. Never contains `Content-Length`; set it yourself.",
+      "type": "object"
+     },
+     "method": {
+      "enum": [
+       "PUT"
+      ],
+      "type": "string"
+     },
+     "url": {
+      "description": "Send the bytes here with only `headers`; never the service key.",
+      "type": "string"
+     }
+    },
+    "required": [
+     "method",
+     "url",
+     "headers",
+     "expires_at"
+    ],
+    "type": "object"
+   }
+  },
+  "securitySchemes": {
+   "serviceKey": {
+    "description": "A service key, `ocr_<8 hex>_<secret>`. Never echoed in any response.",
+    "scheme": "bearer",
+    "type": "http"
+   }
+  }
+ },
+ "info": {
+  "description": "The contract the Go, PHP and JavaScript SDKs vendor. `docs/spec.md` is the spec of record;\n`make openapi-check` keeps this document, `docs/errors.md`, `docs/events.md` and\n`docs/sdk-surface.yaml` in step with the server.\n\nEvery authenticated request sends `Authorization: Bearer <service key>` and `X-Tenant-ID`.\nEvery response, errors included, carries `X-Request-ID`. Errors use the envelope in\n`components/schemas/Error`; `doc_url` links to the code's anchor in `docs/errors.md`.\n\nNew response fields may be added in a minor release: clients ignore fields they do not know.\n",
+  "license": {
+   "identifier": "Apache-2.0",
+   "name": "Apache-2.0"
+  },
+  "summary": "Reviews, ratings and review media for any external entity.",
+  "title": "Octoreview API",
+  "version": "1.0.0-rc.1"
+ },
+ "openapi": "3.1.0",
+ "paths": {
+  "/applications/{application_id}/settings": {
+   "get": {
+    "description": "Needs `settings:read` on a global-only or `namespace_wildcard` grant.",
+    "operationId": "getApplicationSettings",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ApplicationSettingsResponse"
+        }
+       }
+      },
+      "description": "The settings; every field is null until set."
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "Application defaults plus computed storage usage.",
+    "tags": [
+     "settings"
+    ]
+   },
+   "parameters": [
+    {
+     "in": "path",
+     "name": "application_id",
+     "required": true,
+     "schema": {
+      "$ref": "#/components/schemas/ScopeId"
+     }
+    }
+   ],
+   "put": {
+    "description": "Needs `settings:write` on a global-only or `namespace_wildcard` grant.",
+    "operationId": "putApplicationSettings",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/ActorId"
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ApplicationSettingsPut"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ApplicationSettingsResponse"
+        }
+       }
+      },
+      "description": "The stored settings."
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "Replace every settings field; null means \"inherit the server default\".",
+    "tags": [
+     "settings"
+    ]
+   }
+  },
+  "/audit-logs": {
+   "get": {
+    "description": "An exact-namespace grant sees only its namespace's rows. Needs `audit:read`.",
+    "operationId": "listAuditLogs",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceType"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceId"
+     },
+     {
+      "$ref": "#/components/parameters/ApplicationIdQuery"
+     },
+     {
+      "$ref": "#/components/parameters/IncludeGlobal"
+     },
+     {
+      "in": "query",
+      "name": "action",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "aggregate_type",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "aggregate_id",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "actor_id",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "$ref": "#/components/parameters/Limit"
+     },
+     {
+      "$ref": "#/components/parameters/Offset"
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/AuditLogList"
+        }
+       }
+      },
+      "description": "A page of audit rows."
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "List audit log rows, newest first.",
+    "tags": [
+     "audit"
+    ]
+   }
+  },
+  "/authors/erase": {
+   "post": {
+    "description": "Needs `privacy:erase` on a global-only or `namespace_wildcard` grant. Emits\n`author.erased`.\n",
+    "operationId": "eraseAuthor",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/ActorId"
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/EraseRequest"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "properties": {
+          "data": {
+           "$ref": "#/components/schemas/EraseResult"
+          }
+         },
+         "required": [
+          "data"
+         ],
+         "type": "object"
+        }
+       }
+      },
+      "description": "What this batch did."
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "Redact a batch of the author's reviews; call again while `remaining > 0`.",
+    "tags": [
+     "privacy"
+    ]
+   }
+  },
+  "/entities": {
+   "get": {
+    "operationId": "listEntities",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceType"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceId"
+     },
+     {
+      "$ref": "#/components/parameters/ApplicationIdQuery"
+     },
+     {
+      "$ref": "#/components/parameters/IncludeGlobal"
+     },
+     {
+      "in": "query",
+      "name": "entity_type",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "external_id",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "is_active",
+      "schema": {
+       "enum": [
+        "true",
+        "false"
+       ],
+       "type": "string"
+      }
+     },
+     {
+      "$ref": "#/components/parameters/Limit"
+     },
+     {
+      "$ref": "#/components/parameters/Offset"
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/EntityList"
+        }
+       }
+      },
+      "description": "A page of entities."
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "List entities, newest first.",
+    "tags": [
+     "entities"
+    ]
+   },
+   "put": {
+    "description": "Keyed by `(application_id, entity_type, external_id)` in the request's namespace.\nNever reactivates an inactive entity; use `PATCH /entities/{entity_id}` with\n`is_active: true`. Needs `entities:write`.\n",
+    "operationId": "upsertEntity",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceType"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceId"
+     },
+     {
+      "$ref": "#/components/parameters/ActorId"
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/EntityUpsert"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/EntityResponse"
+        }
+       }
+      },
+      "description": "The entity existed and was updated."
+     },
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/EntityResponse"
+        }
+       }
+      },
+      "description": "The entity was created."
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "Create an entity, or update its metadata and media policy overrides.",
+    "tags": [
+     "entities"
+    ]
+   }
+  },
+  "/entities/lookup": {
+   "get": {
+    "description": "With `include_global=true` on a namespaced request, a namespaced entity wins over a\nglobal one with the same key.\n",
+    "operationId": "lookupEntity",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceType"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceId"
+     },
+     {
+      "in": "query",
+      "name": "application_id",
+      "required": true,
+      "schema": {
+       "$ref": "#/components/schemas/ScopeId"
+      }
+     },
+     {
+      "in": "query",
+      "name": "entity_type",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "external_id",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "$ref": "#/components/parameters/IncludeGlobal"
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/EntityResponse"
+        }
+       }
+      },
+      "description": "The entity."
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "Find one entity by its external key.",
+    "tags": [
+     "entities"
+    ]
+   }
+  },
+  "/entities/ratings/query": {
+   "post": {
+    "description": "One summary per requested id, in request order. An unknown id gets a zero-count summary\nwith `entity_id: null`. Duplicate ids are answered at every position. Needs\n`entities:read`. Sends `Cache-Control: private, max-age=60`.\n",
+    "operationId": "queryRatings",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceType"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceId"
+     },
+     {
+      "$ref": "#/components/parameters/IncludeGlobal"
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/RatingsQuery"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "properties": {
+          "data": {
+           "items": {
+            "$ref": "#/components/schemas/BatchRating"
+           },
+           "type": "array"
+          }
+         },
+         "required": [
+          "data"
+         ],
+         "type": "object"
+        }
+       }
+      },
+      "description": "The summaries."
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "Rating summaries for up to 100 entities in one call (a read).",
+    "tags": [
+     "ratings"
+    ]
+   }
+  },
+  "/entities/{entity_id}": {
+   "delete": {
+    "operationId": "deactivateEntity",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceType"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceId"
+     },
+     {
+      "$ref": "#/components/parameters/ApplicationIdQuery"
+     },
+     {
+      "$ref": "#/components/parameters/ActorId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/EntityResponse"
+        }
+       }
+      },
+      "description": "The deactivated entity."
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "Deactivate the entity (`is_active=false`); nothing is deleted.",
+    "tags": [
+     "entities"
+    ]
+   },
+   "get": {
+    "operationId": "getEntity",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceType"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceId"
+     },
+     {
+      "$ref": "#/components/parameters/ApplicationIdQuery"
+     },
+     {
+      "$ref": "#/components/parameters/IncludeGlobal"
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/EntityResponse"
+        }
+       }
+      },
+      "description": "The entity."
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "Get one entity with its rating summary.",
+    "tags": [
+     "entities"
+    ]
+   },
+   "parameters": [
+    {
+     "$ref": "#/components/parameters/EntityId"
+    }
+   ],
+   "patch": {
+    "operationId": "updateEntity",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceType"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceId"
+     },
+     {
+      "$ref": "#/components/parameters/ApplicationIdQuery"
+     },
+     {
+      "$ref": "#/components/parameters/ActorId"
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/EntityPatch"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/EntityResponse"
+        }
+       }
+      },
+      "description": "The updated entity."
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "Change metadata, media policy overrides or `is_active`.",
+    "tags": [
+     "entities"
+    ]
+   }
+  },
+  "/entities/{entity_id}/rating": {
+   "get": {
+    "operationId": "getEntityRating",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceType"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceId"
+     },
+     {
+      "$ref": "#/components/parameters/ApplicationIdQuery"
+     },
+     {
+      "$ref": "#/components/parameters/IncludeGlobal"
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "properties": {
+          "data": {
+           "$ref": "#/components/schemas/EntityRating"
+          }
+         },
+         "required": [
+          "data"
+         ],
+         "type": "object"
+        }
+       }
+      },
+      "description": "The summary."
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "The entity's rating summary. Sends `Cache-Control: private, max-age=60`.",
+    "tags": [
+     "ratings"
+    ]
+   },
+   "parameters": [
+    {
+     "$ref": "#/components/parameters/EntityId"
+    }
+   ]
+  },
+  "/health/live": {
+   "get": {
+    "operationId": "getHealthLive",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "properties": {
+          "data": {
+           "$ref": "#/components/schemas/HealthLive"
+          }
+         },
+         "required": [
+          "data"
+         ],
+         "type": "object"
+        }
+       }
+      },
+      "description": "The process is serving requests."
+     }
+    },
+    "security": [],
+    "summary": "Liveness probe.",
+    "tags": [
+     "health"
+    ]
+   }
+  },
+  "/health/ready": {
+   "get": {
+    "operationId": "getHealthReady",
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HealthReadyResponse"
+        }
+       }
+      },
+      "description": "Ready."
+     },
+     "503": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HealthReadyResponse"
+        }
+       }
+      },
+      "description": "The database is unreachable (not the error envelope)."
+     }
+    },
+    "security": [],
+    "summary": "Readiness probe. Checks the database, never storage.",
+    "tags": [
+     "health"
+    ]
+   }
+  },
+  "/media-files/{token}": {
+   "get": {
+    "description": "A `public` URL stops working once the media is no longer publicly visible; `author` and\n`moderator` URLs stop once it is deleting or deleted (404). Sends\n`X-Content-Type-Options: nosniff`, `Content-Security-Policy: sandbox; default-src 'none'`\nand `Cross-Origin-Resource-Policy`. On a cloud backend the path answers 404: media `url`\nvalues are presigned store URLs there.\n",
+    "operationId": "downloadMedia",
+    "parameters": [
+     {
+      "description": "One range (`bytes=0-99`, `bytes=100-`, `bytes=-100`); a multi-range gets the whole body.",
+      "in": "header",
+      "name": "Range",
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "image/jpeg": {},
+       "image/png": {},
+       "image/webp": {},
+       "video/mp4": {},
+       "video/quicktime": {},
+       "video/webm": {}
+      },
+      "description": "The whole file."
+     },
+     "206": {
+      "content": {
+       "image/jpeg": {},
+       "image/png": {},
+       "image/webp": {},
+       "video/mp4": {},
+       "video/quicktime": {},
+       "video/webm": {}
+      },
+      "description": "The requested range, with `Content-Range`."
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "410": {
+      "$ref": "#/components/responses/Gone"
+     },
+     "416": {
+      "$ref": "#/components/responses/RangeNotSatisfiable"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "security": [],
+    "summary": "Local backend only. The target of a local media `url`.",
+    "tags": [
+     "media"
+    ]
+   },
+   "parameters": [
+    {
+     "$ref": "#/components/parameters/Token"
+    }
+   ]
+  },
+  "/media-uploads/{token}": {
+   "parameters": [
+    {
+     "$ref": "#/components/parameters/Token"
+    }
+   ],
+   "put": {
+    "description": "Reached through `upload.url`, never built by hand. Requires `Content-Length`; chunked\nbodies get 411. CSRF does not apply; the signed token is the credential. On a cloud\nbackend the path answers 404: `upload.url` is a presigned store URL there.\n",
+    "operationId": "uploadMediaBytes",
+    "requestBody": {
+     "content": {
+      "image/jpeg": {},
+      "image/png": {},
+      "image/webp": {},
+      "video/mp4": {},
+      "video/quicktime": {},
+      "video/webm": {}
+     },
+     "required": true
+    },
+    "responses": {
+     "204": {
+      "description": "The bytes are staged; call complete."
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "405": {
+      "$ref": "#/components/responses/Error"
+     },
+     "409": {
+      "$ref": "#/components/responses/Conflict"
+     },
+     "410": {
+      "$ref": "#/components/responses/Gone"
+     },
+     "411": {
+      "$ref": "#/components/responses/LengthRequired"
+     },
+     "413": {
+      "$ref": "#/components/responses/PayloadTooLarge"
+     },
+     "503": {
+      "$ref": "#/components/responses/ServiceUnavailable"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "security": [],
+    "summary": "Local backend only. The target of a local `upload.url`.",
+    "tags": [
+     "media"
+    ]
+   }
+  },
+  "/reviews": {
+   "get": {
+    "description": "Another `status`, `has_pending_revision` or `media_moderation_status` needs\n`reviews:moderate`, except the author path: `author_id` with `include_unpublished=true`\nreturns that author's non-removed reviews of any status. Sends\n`Cache-Control: private, max-age=60`.\n",
+    "operationId": "listReviews",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceType"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceId"
+     },
+     {
+      "$ref": "#/components/parameters/ApplicationIdQuery"
+     },
+     {
+      "$ref": "#/components/parameters/IncludeGlobal"
+     },
+     {
+      "in": "query",
+      "name": "entity_id",
+      "schema": {
+       "format": "uuid",
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "entity_type",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "external_id",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "$ref": "#/components/parameters/AuthorId"
+     },
+     {
+      "$ref": "#/components/parameters/IncludeUnpublished"
+     },
+     {
+      "in": "query",
+      "name": "status",
+      "schema": {
+       "$ref": "#/components/schemas/ReviewStatus"
+      }
+     },
+     {
+      "in": "query",
+      "name": "rating",
+      "schema": {
+       "maximum": 5,
+       "minimum": 1,
+       "type": "integer"
+      }
+     },
+     {
+      "in": "query",
+      "name": "has_media",
+      "schema": {
+       "enum": [
+        "true",
+        "false"
+       ],
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "is_verified_purchase",
+      "schema": {
+       "enum": [
+        "true",
+        "false"
+       ],
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "has_pending_revision",
+      "schema": {
+       "enum": [
+        "true",
+        "false"
+       ],
+       "type": "string"
+      }
+     },
+     {
+      "in": "query",
+      "name": "media_moderation_status",
+      "schema": {
+       "$ref": "#/components/schemas/ModerationStatus"
+      }
+     },
+     {
+      "in": "query",
+      "name": "sort",
+      "schema": {
+       "default": "newest",
+       "enum": [
+        "newest",
+        "rating"
+       ],
+       "type": "string"
+      }
+     },
+     {
+      "$ref": "#/components/parameters/Limit"
+     },
+     {
+      "$ref": "#/components/parameters/Offset"
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ReviewList"
+        }
+       }
+      },
+      "description": "A page of reviews with embedded media."
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "List reviews; published only by default.",
+    "tags": [
+     "reviews"
+    ]
+   },
+   "post": {
+    "description": "Send `entity_id`, or `entity_type` with `external_id`. `source_ref` and\n`is_verified_purchase` need `reviews:attest`. A duplicate\n`(entity, author_id[, source_ref])` answers 409 `review_exists` with\n`details.review_id`. Under pre-moderation the review starts `pending`.\n",
+    "operationId": "createReview",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceType"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceId"
+     },
+     {
+      "$ref": "#/components/parameters/ActorId"
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ReviewCreate"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ReviewResponse"
+        }
+       }
+      },
+      "description": "The review."
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "409": {
+      "$ref": "#/components/responses/Conflict"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "Create a review; the entity is created on first use.",
+    "tags": [
+     "reviews"
+    ]
+   }
+  },
+  "/reviews/{review_id}": {
+   "delete": {
+    "operationId": "removeReview",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceType"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceId"
+     },
+     {
+      "$ref": "#/components/parameters/ApplicationIdQuery"
+     },
+     {
+      "$ref": "#/components/parameters/ActorId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ReviewResponse"
+        }
+       }
+      },
+      "description": "The removed review."
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "409": {
+      "$ref": "#/components/responses/Conflict"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "Move the review to `removed` (never a hard delete).",
+    "tags": [
+     "reviews"
+    ]
+   },
+   "get": {
+    "description": "The author path (`author_id` equal to the review's author, with `include_unpublished=true`) returns author media URLs.",
+    "operationId": "getReview",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceType"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceId"
+     },
+     {
+      "$ref": "#/components/parameters/ApplicationIdQuery"
+     },
+     {
+      "$ref": "#/components/parameters/IncludeGlobal"
+     },
+     {
+      "$ref": "#/components/parameters/AuthorId"
+     },
+     {
+      "$ref": "#/components/parameters/IncludeUnpublished"
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ReviewResponse"
+        }
+       }
+      },
+      "description": "The review."
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "Get one review in any status.",
+    "tags": [
+     "reviews"
+    ]
+   },
+   "parameters": [
+    {
+     "$ref": "#/components/parameters/ReviewId"
+    }
+   ],
+   "patch": {
+    "description": "Under pre-moderation an edit of a published review becomes a pending revision.\n`is_verified_purchase` needs `reviews:attest`; `source_ref` is immutable (409).\n",
+    "operationId": "updateReview",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceType"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceId"
+     },
+     {
+      "$ref": "#/components/parameters/ApplicationIdQuery"
+     },
+     {
+      "$ref": "#/components/parameters/ActorId"
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ReviewPatch"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ReviewResponse"
+        }
+       }
+      },
+      "description": "The review."
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "409": {
+      "$ref": "#/components/responses/Conflict"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "Edit a review.",
+    "tags": [
+     "reviews"
+    ]
+   }
+  },
+  "/reviews/{review_id}/hide": {
+   "parameters": [
+    {
+     "$ref": "#/components/parameters/ReviewId"
+    }
+   ],
+   "post": {
+    "operationId": "hideReview",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceType"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceId"
+     },
+     {
+      "$ref": "#/components/parameters/ApplicationIdQuery"
+     },
+     {
+      "$ref": "#/components/parameters/ActorId"
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ModerationReason"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ReviewResponse"
+        }
+       }
+      },
+      "description": "The review."
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "409": {
+      "$ref": "#/components/responses/Conflict"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "Hide a published review; its media objects are kept.",
+    "tags": [
+     "reviews"
+    ]
+   }
+  },
+  "/reviews/{review_id}/media": {
+   "get": {
+    "operationId": "listReviewMedia",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceType"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceId"
+     },
+     {
+      "$ref": "#/components/parameters/ApplicationIdQuery"
+     },
+     {
+      "$ref": "#/components/parameters/IncludeGlobal"
+     },
+     {
+      "$ref": "#/components/parameters/AuthorId"
+     },
+     {
+      "$ref": "#/components/parameters/IncludeUnpublished"
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "properties": {
+          "data": {
+           "items": {
+            "$ref": "#/components/schemas/Media"
+           },
+           "type": "array"
+          }
+         },
+         "required": [
+          "data"
+         ],
+         "type": "object"
+        }
+       }
+      },
+      "description": "The media, in position order."
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "Every non-deleted media item of the review (no embed cap).",
+    "tags": [
+     "media"
+    ]
+   },
+   "parameters": [
+    {
+     "$ref": "#/components/parameters/ReviewId"
+    }
+   ],
+   "post": {
+    "description": "PUT the bytes to `upload.url` with exactly `upload.headers` and an explicit\n`Content-Length` (never chunked, never the service key), then call complete. A retry\nwith the same `client_upload_id` answers 200 with the same row and a fresh URL for it\n(`upload: null` once the row is no longer uploadable). Needs `media:write`.\n",
+    "operationId": "createMediaUpload",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceType"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceId"
+     },
+     {
+      "$ref": "#/components/parameters/ApplicationIdQuery"
+     },
+     {
+      "$ref": "#/components/parameters/ActorId"
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/MediaIntent"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/MediaIntentResponse"
+        }
+       }
+      },
+      "description": "A `client_upload_id` replay of an existing row."
+     },
+     "201": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/MediaIntentResponse"
+        }
+       }
+      },
+      "description": "A new pending row and its upload target."
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "409": {
+      "$ref": "#/components/responses/Conflict"
+     },
+     "503": {
+      "$ref": "#/components/responses/ServiceUnavailable"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "Reserve a media slot and get an upload target (intent).",
+    "tags": [
+     "media"
+    ]
+   }
+  },
+  "/reviews/{review_id}/media/{media_id}": {
+   "delete": {
+    "description": "Answers `deleting` when the storage delete failed; `cleanup_media` retries it and the URL\nis already null. Refused on a `removed` review (409 `invalid_transition`).\n",
+    "operationId": "deleteMedia",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceType"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceId"
+     },
+     {
+      "$ref": "#/components/parameters/ApplicationIdQuery"
+     },
+     {
+      "$ref": "#/components/parameters/ActorId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/MediaResponse"
+        }
+       }
+      },
+      "description": "The media item."
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "409": {
+      "$ref": "#/components/responses/Conflict"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "Delete the media object; the row stays as `deleted` (idempotent).",
+    "tags": [
+     "media"
+    ]
+   },
+   "parameters": [
+    {
+     "$ref": "#/components/parameters/ReviewId"
+    },
+    {
+     "$ref": "#/components/parameters/MediaId"
+    }
+   ]
+  },
+  "/reviews/{review_id}/media/{media_id}/approve": {
+   "parameters": [
+    {
+     "$ref": "#/components/parameters/ReviewId"
+    },
+    {
+     "$ref": "#/components/parameters/MediaId"
+    }
+   ],
+   "post": {
+    "operationId": "approveMedia",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceType"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceId"
+     },
+     {
+      "$ref": "#/components/parameters/ApplicationIdQuery"
+     },
+     {
+      "$ref": "#/components/parameters/ActorId"
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/MediaApprove"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/MediaResponse"
+        }
+       }
+      },
+      "description": "The media item."
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "409": {
+      "$ref": "#/components/responses/Conflict"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "Approve pending-moderation media, guarded by the review versions.",
+    "tags": [
+     "media"
+    ]
+   }
+  },
+  "/reviews/{review_id}/media/{media_id}/complete": {
+   "parameters": [
+    {
+     "$ref": "#/components/parameters/ReviewId"
+    },
+    {
+     "$ref": "#/components/parameters/MediaId"
+    }
+   ],
+   "post": {
+    "description": "Retry on 503, 409 `complete_in_progress` and 409 `upload_changed`. A 422\n`media_rejected` is final for this row: upload again with a new intent.\n",
+    "operationId": "completeMediaUpload",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceType"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceId"
+     },
+     {
+      "$ref": "#/components/parameters/ApplicationIdQuery"
+     },
+     {
+      "$ref": "#/components/parameters/ActorId"
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/MediaResponse"
+        }
+       }
+      },
+      "description": "The ready media item."
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "409": {
+      "$ref": "#/components/responses/Conflict"
+     },
+     "422": {
+      "$ref": "#/components/responses/Unprocessable"
+     },
+     "503": {
+      "$ref": "#/components/responses/ServiceUnavailable"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "Validate the uploaded bytes and make the media ready (idempotent).",
+    "tags": [
+     "media"
+    ]
+   }
+  },
+  "/reviews/{review_id}/media/{media_id}/reject": {
+   "parameters": [
+    {
+     "$ref": "#/components/parameters/ReviewId"
+    },
+    {
+     "$ref": "#/components/parameters/MediaId"
+    }
+   ],
+   "post": {
+    "operationId": "rejectMedia",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceType"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceId"
+     },
+     {
+      "$ref": "#/components/parameters/ApplicationIdQuery"
+     },
+     {
+      "$ref": "#/components/parameters/ActorId"
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ModerationReason"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/MediaResponse"
+        }
+       }
+      },
+      "description": "The media item."
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "409": {
+      "$ref": "#/components/responses/Conflict"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "Reject ready media; the object is kept so the decision can be reversed.",
+    "tags": [
+     "media"
+    ]
+   }
+  },
+  "/reviews/{review_id}/publish": {
+   "parameters": [
+    {
+     "$ref": "#/components/parameters/ReviewId"
+    }
+   ],
+   "post": {
+    "operationId": "publishReview",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceType"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceId"
+     },
+     {
+      "$ref": "#/components/parameters/ApplicationIdQuery"
+     },
+     {
+      "$ref": "#/components/parameters/ActorId"
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ReviewPublish"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ReviewResponse"
+        }
+       }
+      },
+      "description": "The review."
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "409": {
+      "$ref": "#/components/responses/Conflict"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "Publish a review, guarded by the versions the moderator saw.",
+    "tags": [
+     "reviews"
+    ]
+   }
+  },
+  "/reviews/{review_id}/reject": {
+   "parameters": [
+    {
+     "$ref": "#/components/parameters/ReviewId"
+    }
+   ],
+   "post": {
+    "operationId": "rejectReview",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceType"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceId"
+     },
+     {
+      "$ref": "#/components/parameters/ApplicationIdQuery"
+     },
+     {
+      "$ref": "#/components/parameters/ActorId"
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ModerationReason"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ReviewResponse"
+        }
+       }
+      },
+      "description": "The review."
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "409": {
+      "$ref": "#/components/responses/Conflict"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "Reject a pending review.",
+    "tags": [
+     "reviews"
+    ]
+   }
+  },
+  "/reviews/{review_id}/revision": {
+   "get": {
+    "operationId": "getReviewRevision",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceType"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceId"
+     },
+     {
+      "$ref": "#/components/parameters/ApplicationIdQuery"
+     }
+    ],
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "properties": {
+          "data": {
+           "$ref": "#/components/schemas/Revision"
+          }
+         },
+         "required": [
+          "data"
+         ],
+         "type": "object"
+        }
+       }
+      },
+      "description": "The pending revision."
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "The review's pending revision. Needs `reviews:moderate`.",
+    "tags": [
+     "revisions"
+    ]
+   },
+   "parameters": [
+    {
+     "$ref": "#/components/parameters/ReviewId"
+    }
+   ]
+  },
+  "/reviews/{review_id}/revision/approve": {
+   "parameters": [
+    {
+     "$ref": "#/components/parameters/ReviewId"
+    }
+   ],
+   "post": {
+    "operationId": "approveReviewRevision",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceType"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceId"
+     },
+     {
+      "$ref": "#/components/parameters/ApplicationIdQuery"
+     },
+     {
+      "$ref": "#/components/parameters/ActorId"
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/RevisionApprove"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ReviewResponse"
+        }
+       }
+      },
+      "description": "The review."
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "409": {
+      "$ref": "#/components/responses/Conflict"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "Apply the pending revision, guarded by the versions the moderator saw.",
+    "tags": [
+     "revisions"
+    ]
+   }
+  },
+  "/reviews/{review_id}/revision/reject": {
+   "parameters": [
+    {
+     "$ref": "#/components/parameters/ReviewId"
+    }
+   ],
+   "post": {
+    "operationId": "rejectReviewRevision",
+    "parameters": [
+     {
+      "$ref": "#/components/parameters/TenantId"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceType"
+     },
+     {
+      "$ref": "#/components/parameters/NamespaceId"
+     },
+     {
+      "$ref": "#/components/parameters/ApplicationIdQuery"
+     },
+     {
+      "$ref": "#/components/parameters/ActorId"
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/RevisionReject"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ReviewResponse"
+        }
+       }
+      },
+      "description": "The review."
+     },
+     "400": {
+      "$ref": "#/components/responses/BadRequest"
+     },
+     "401": {
+      "$ref": "#/components/responses/Unauthorized"
+     },
+     "403": {
+      "$ref": "#/components/responses/Forbidden"
+     },
+     "404": {
+      "$ref": "#/components/responses/NotFound"
+     },
+     "409": {
+      "$ref": "#/components/responses/Conflict"
+     },
+     "default": {
+      "$ref": "#/components/responses/Error"
+     }
+    },
+    "summary": "Discard the pending revision.",
+    "tags": [
+     "revisions"
+    ]
+   }
+  }
+ },
+ "security": [
+  {
+   "serviceKey": []
+  }
+ ],
+ "servers": [
+  {
+   "url": "/api/v1"
+  }
+ ],
+ "tags": [
+  {
+   "name": "health"
+  },
+  {
+   "name": "entities"
+  },
+  {
+   "name": "ratings"
+  },
+  {
+   "name": "settings"
+  },
+  {
+   "name": "reviews"
+  },
+  {
+   "name": "revisions"
+  },
+  {
+   "name": "media"
+  },
+  {
+   "name": "privacy"
+  },
+  {
+   "name": "audit"
+  }
+ ]
+}
