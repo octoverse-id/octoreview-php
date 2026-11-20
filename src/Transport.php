@@ -6,6 +6,7 @@ namespace Octoverse\Octoreview;
 
 use GuzzleHttp\Psr7\HttpFactory;
 use Octoverse\Octoreview\Exception\ApiException;
+use Octoverse\Octoreview\Exception\MalformedResponseException;
 use Octoverse\Octoreview\Exception\NotModifiedException;
 use Octoverse\Octoreview\Exception\TransportException;
 use Psr\Http\Client\ClientExceptionInterface;
@@ -216,17 +217,17 @@ final class Transport
         try {
             $response = $this->http->sendRequest($request);
         } catch (ClientExceptionInterface $e) {
+            // Not chained: the client's exception can carry the key or a signed URL unredacted.
             throw new TransportException(
                 sprintf('octoreview: %s %s: %s', $op->method, Redactor::url($url), Redactor::text($e->getMessage())),
-                0,
-                $e,
+                $e instanceof NetworkExceptionInterface,
             );
         }
+        $meta = new ResponseMeta(self::header($response, 'ETag'), self::header($response, 'X-Request-ID'));
         $raw = (string) $response->getBody();
         if (strlen($raw) > self::MAX_RESPONSE_BYTES) {
-            throw new TransportException(sprintf('octoreview: %s answered more than 16 MiB', $op->id));
+            throw new TransportException(sprintf('octoreview: %s answered more than 16 MiB', $op->id), false, $meta->requestId);
         }
-        $meta = new ResponseMeta(self::header($response, 'ETag'), self::header($response, 'X-Request-ID'));
         $status = $response->getStatusCode();
         if ($status === 304) {
             throw new NotModifiedException(sprintf('octoreview: %s is unchanged (ETag %s)', $op->id, $call?->ifNoneMatch));
@@ -234,7 +235,7 @@ final class Transport
         if (($status >= 200 && $status < 300) || $status === $acceptStatus) {
             $decoded = json_decode($raw, true);
             if (!is_array($decoded) || !array_key_exists('data', $decoded)) {
-                throw new TransportException(sprintf('octoreview: %s answered without a data envelope', $op->id));
+                throw new MalformedResponseException(sprintf('octoreview: %s answered without a data envelope', $op->id), $meta->requestId);
             }
 
             $pagination = is_array($decoded['pagination'] ?? null) ? $decoded['pagination'] : null;
@@ -279,7 +280,7 @@ final class Transport
 
     private function retriableNetworkFailure(TransportException $e): bool
     {
-        return $e->getPrevious() instanceof NetworkExceptionInterface;
+        return $e->networkFailure;
     }
 
     private static function backoff(int $attempt): float

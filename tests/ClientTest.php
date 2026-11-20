@@ -108,6 +108,7 @@ final class ClientTest extends TestCase
             self::fail('expected the transport failure');
         } catch (TransportException $e) {
             self::assertStringContainsString('connection refused', $e->getMessage());
+            self::assertTrue($e->networkFailure);
         }
         self::assertCount(3, $this->http->requests);
     }
@@ -298,18 +299,26 @@ final class ClientTest extends TestCase
     public function testMalformedSuccessResponsesAreTyped(): void
     {
         $cases = [
-            'no envelope' => [new Response(200, [], '{"id": "e-1"}'), TransportException::class],
-            'not an object' => [new Response(200, [], '{"data": [1, 2]}'), MalformedResponseException::class],
-            'missing field' => [new Response(200, [], '{"data": {"id": "e-1"}}'), MalformedResponseException::class],
+            'no envelope' => new Response(200, ['X-Request-ID' => 'req-shape'], '{"id": "e-1"}'),
+            'not an object' => new Response(200, ['X-Request-ID' => 'req-shape'], '{"data": [1, 2]}'),
+            'missing field' => new Response(200, ['X-Request-ID' => 'req-shape'], '{"data": {"id": "e-1"}}'),
         ];
-        foreach ($cases as $name => [$response, $class]) {
+        foreach ($cases as $name => $response) {
             $this->http->push($response);
             try {
                 $this->client()->entities()->get('e-1');
                 self::fail("{$name}: expected an exception");
-            } catch (OctoreviewException $e) {
-                self::assertInstanceOf($class, $e, $name);
+            } catch (MalformedResponseException $e) {
+                self::assertSame('req-shape', $e->requestId, $name);
+                self::assertStringContainsString('(request id req-shape)', $e->getMessage(), $name);
             }
+        }
+        $this->http->push(new Response(200, ['X-Request-ID' => 'req-page'], '{"data": []}'));
+        try {
+            $this->client()->entities()->list();
+            self::fail('a page without pagination must fail');
+        } catch (MalformedResponseException $e) {
+            self::assertSame('req-page', $e->requestId);
         }
     }
 
@@ -338,9 +347,12 @@ final class ClientTest extends TestCase
                 $call();
                 self::fail('expected an exception');
             } catch (OctoreviewException $e) {
+                // (string) $e renders the whole chain, as a logger would.
                 foreach ([$sentinel, 'X-Amz-Signature', 'deadbeef', 'tok123'] as $secret) {
                     self::assertStringNotContainsString($secret, $e->getMessage());
+                    self::assertStringNotContainsString($secret, (string) $e);
                 }
+                self::assertNull($e->getPrevious());
             }
         }
     }

@@ -40,7 +40,7 @@ abstract class Service
     ): mixed {
         $result = $this->transport->call(Operations::get($operation), $pathValues, $params, $options, $acceptStatus);
 
-        return $build(self::object($result['data'], $operation), $result['meta']);
+        return self::decoding($result['meta'], static fn(): mixed => $build(self::object($result['data'], $operation), $result['meta']));
     }
 
     /**
@@ -55,15 +55,18 @@ abstract class Service
     protected function page(string $operation, array $pathValues, array $params, ?CallOptions $options, \Closure $build): Page
     {
         $result = $this->transport->call(Operations::get($operation), $pathValues, $params, $options);
-        if ($result['pagination'] === null) {
-            throw new MalformedResponseException(sprintf('octoreview: %s answered without pagination', $operation));
-        }
 
-        return new Page(
-            $this->items($result['data'], $operation, $build),
-            Pagination::fromArray($result['pagination']),
-            $result['meta'],
-        );
+        return self::decoding($result['meta'], function () use ($result, $operation, $build): Page {
+            if ($result['pagination'] === null) {
+                throw new MalformedResponseException(sprintf('octoreview: %s answered without pagination', $operation));
+            }
+
+            return new Page(
+                $this->items($result['data'], $operation, $build),
+                Pagination::fromArray($result['pagination']),
+                $result['meta'],
+            );
+        });
     }
 
     /**
@@ -79,7 +82,29 @@ abstract class Service
     {
         $result = $this->transport->call(Operations::get($operation), $pathValues, $params, $options);
 
-        return $this->items($result['data'], $operation, $build);
+        return self::decoding($result['meta'], fn(): array => $this->items($result['data'], $operation, $build));
+    }
+
+    /**
+     * Runs a decode, adding the response's request id to a MalformedResponseException.
+     *
+     * @template T
+     *
+     * @param \Closure(): T $decode
+     *
+     * @return T
+     */
+    private static function decoding(ResponseMeta $meta, \Closure $decode): mixed
+    {
+        try {
+            return $decode();
+        } catch (MalformedResponseException $e) {
+            if ($e->requestId !== null || $meta->requestId === null) {
+                throw $e;
+            }
+
+            throw new MalformedResponseException($e->getMessage(), $meta->requestId);
+        }
     }
 
     /**
