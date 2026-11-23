@@ -9,6 +9,7 @@ use Octoverse\Octoreview\CallOptions;
 use Octoverse\Octoreview\Client;
 use Octoverse\Octoreview\ClientOptions;
 use Octoverse\Octoreview\ErrorCode;
+use Octoverse\Octoreview\Model\Page;
 use Octoverse\Octoreview\Operations;
 use Octoverse\Octoreview\Tests\Support\Contract;
 use Octoverse\Octoreview\Tests\Support\RecordingClient;
@@ -123,8 +124,9 @@ final class ContractTest extends TestCase
             $options = $options->includeGlobal();
         }
 
-        $calls[$id]($client, $options); // decodes the captured server response
+        $result = $calls[$id]($client, $options); // decodes the captured server response
         $request = $http->last();
+        self::assertResponseModelMatches($id, $result);
 
         self::assertSame($want['method'], $request->getMethod());
         $path = preg_replace_callback('/\{([a-z_]+)\}/', static fn(array $m): string => rawurlencode((string) self::value($m[1])), $want['path']);
@@ -157,6 +159,54 @@ final class ContractTest extends TestCase
         self::assertSame($namespaced ? 'v:namespace_id' : '', $request->getHeaderLine('X-Namespace-ID'));
         self::assertSame(in_array('X-Actor-ID', $want['headers'], true) ? 'v:actor' : '', $request->getHeaderLine('X-Actor-ID'));
         self::assertStringStartsWith('octoreview-php/', $request->getHeaderLine('User-Agent'));
+    }
+
+    /**
+     * The model a method decodes into declares exactly the properties of the schema the contract
+     * names for that operation's response, and the captured server response filled it with
+     * non-default values.
+     */
+    private static function assertResponseModelMatches(string $id, mixed $result): void
+    {
+        $want = Contract::responseData($id);
+        self::assertNotNull($want, "{$id} has no JSON data response in the contract");
+        $items = match (true) {
+            $result instanceof Page => $result->items,
+            is_array($result) => $result,
+            default => [$result],
+        };
+        self::assertSame($want['list'], $result instanceof Page || is_array($result), "{$id}: list or single result");
+        self::assertNotEmpty($items, "{$id}: testdata/fixtures/{$id}.json has no items to decode (run make fixtures)");
+        $model = $items[0];
+        self::assertIsObject($model);
+        $fields = self::wireFields($model::class);
+        self::assertNotEmpty($want['fields'], "{$id}: the contract schema {$want['schema']} lists no properties");
+        self::assertEqualsCanonicalizing($want['fields'], $fields, sprintf('%s decodes into %s, whose fields differ from the contract schema %s', $id, $model::class, $want['schema']));
+        $defaults = array_filter(
+            get_object_vars($model),
+            static fn(mixed $v, string $k): bool => $k !== 'meta' && ($v === '' || $v === 0 || $v === []),
+            ARRAY_FILTER_USE_BOTH,
+        );
+        self::assertLessThan(count($fields), count($defaults) * 2, "{$id}: most decoded fields are defaults: " . implode(', ', array_keys($defaults)));
+    }
+
+    /**
+     * @param class-string $class
+     *
+     * @return list<string> the model's constructor parameters as wire names, without `meta`
+     */
+    private static function wireFields(string $class): array
+    {
+        $constructor = (new \ReflectionClass($class))->getConstructor();
+        self::assertNotNull($constructor);
+        $names = [];
+        foreach ($constructor->getParameters() as $parameter) {
+            if ($parameter->getName() !== 'meta') {
+                $names[] = strtolower((string) preg_replace('/[A-Z]/', '_$0', $parameter->getName()));
+            }
+        }
+
+        return $names;
     }
 
     public function testTheReadmeRetryTableMatchesTheSurface(): void

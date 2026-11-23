@@ -46,6 +46,9 @@ names the server commit. `tests/ContractTest.php` checks:
   query or the body, credentials, namespace and actor headers exactly where the contract declares
   them. Each call decodes a real server response from `testdata/fixtures`, captured by this
   SDK's integration suite (`make fixtures`);
+- the model each method decodes into declares exactly the properties of the schema the contract
+  names for that operation's response (`data`, or each item of a list), and the decoded fixture
+  holds mostly non-default values;
 - the README's retry table matches the operation table;
 - every event type and payload field in the vendored `events.md` exists in `src/Webhook`, and
   nothing else (`tests/WebhookTest.php`).

@@ -59,6 +59,56 @@ final class Contract
     }
 
     /**
+     * The schema an operation's success response carries under `data` (a component name, or
+     * "inline"), its property names, and whether `data` is a list of it.
+     *
+     * @return array{schema: string, fields: list<string>, list: bool}|null null when the response has no JSON body
+     */
+    public static function responseData(string $operationId): ?array
+    {
+        foreach (self::openapi()['paths'] as $item) {
+            foreach ($item as $method => $op) {
+                if ($method === 'parameters' || $op['operationId'] !== $operationId) {
+                    continue;
+                }
+                foreach ($op['responses'] as $code => $response) {
+                    if (!str_starts_with(strval($code), '2')) {
+                        continue;
+                    }
+                    $response = isset($response['$ref']) ? self::resolve($response) : $response;
+                    $schema = $response['content']['application/json']['schema'] ?? null;
+                    if (!is_array($schema)) {
+                        return null;
+                    }
+                    $data = self::resolve($schema)['properties']['data'] ?? null;
+                    if (!is_array($data)) {
+                        return null;
+                    }
+                    $list = ($data['type'] ?? null) === 'array';
+                    $item = $list ? ($data['items'] ?? []) : $data;
+                    if (isset($item['$ref'])) {
+                        $name = substr(strrchr($item['$ref'], '/') ?: '', 1);
+
+                        return ['schema' => $name, 'fields' => self::properties($name), 'list' => $list];
+                    }
+
+                    return ['schema' => 'inline', 'fields' => array_map(strval(...), array_keys($item['properties'] ?? [])), 'list' => $list];
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /** @return list<string> a component schema's property names */
+    public static function properties(string $schema): array
+    {
+        $node = self::openapi()['components']['schemas'][$schema] ?? [];
+
+        return array_map(strval(...), array_keys($node['properties'] ?? []));
+    }
+
+    /**
      * @param array<array<string, mixed>> $params
      *
      * @return list<string>
