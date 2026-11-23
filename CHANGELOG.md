@@ -17,6 +17,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- `make integration` (and CI's `integration` job) also runs the quickstart and the suite with
+  media on the RustFS S3 emulator, as the server's compose `s3` profile does.
 - The client core (PHP 8.2+, PSR-18 with Guzzle by default): `new Client()` and
   `Client::fromEnv()`, immutable `ClientOptions` (application, namespace, actor, HTTP client,
   retry bound) and `CallOptions` (per-call application, namespace or global scope,

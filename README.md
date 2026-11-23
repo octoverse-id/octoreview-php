@@ -160,7 +160,8 @@ Read [`AGENTS.md`](AGENTS.md) first (humans too): it holds the rules, gates and 
 pipeline. `make help` lists the targets; `make check` is the fast gate, and it includes the
 offline contract gate against the vendored server contract
 ([`docs/architecture.md`](docs/architecture.md)). `make integration` runs the quickstart and the
-integration suite against the pinned server image (needs Docker).
+integration suite against the pinned server image, with local and S3 (RustFS) media (needs
+Docker).
 
 ## License
 

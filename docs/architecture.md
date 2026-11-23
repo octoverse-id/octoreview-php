@@ -86,7 +86,11 @@ signed URL, and PHP prints the whole chain when an exception is cast to a string
 ## The integration suite
 
 `make integration` boots the pinned server image as one container: SQLite, the local backend,
-and the demo seed through the server's compose start script. It copies out
+and the demo seed through the server's compose start script. It then runs again with media on
+the RustFS S3 emulator, as the server's compose `s3` profile runs it (spec section 19): the
+emulator pinned by the same digest, the bucket created by the image's own `compose-s3-init.py`,
+and the server signing URLs for the host this SDK reaches, so uploads go through presigned S3
+PUTs. It copies out
 `.octoreview-dev.env`, runs `examples/quickstart.php`, then runs the `integration` test suite
 (`tests/Integration`) over the main flows:
 - entity media limits, two uploads and the third refused;
