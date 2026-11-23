@@ -9,7 +9,7 @@ This SDK ships `0.x` releases until the server's first consumer integration pass
 
 ## PHP version
 
-PHP 8.2 or newer: Mbizmarket's lowest PHP service runs 8.2, so there is no 7.4 line. CI tests
+PHP 8.2 or newer: PHP 8.1 reached end of life on 2025-12-31, so there is no older line. CI tests
 8.2, 8.3 and 8.4.
 
 ## Server compatibility

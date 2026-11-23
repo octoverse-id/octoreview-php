@@ -36,7 +36,7 @@ returns a copy, so one client is safe to share.
 ```php
 use Octoverse\Octoreview\{CallOptions, ClientOptions};
 
-$client = new Client('https://reviews.example.com', $apiKey, 'mbizmarket',
+$client = new Client('https://reviews.example.com', $apiKey, 'example',
     (new ClientOptions())->withApplication('storefront')->withNamespace('store', 'store-9'));
 $page = $client->reviews()->list(['entity_type' => 'product', 'external_id' => 'sku-1', 'limit' => 20],
     CallOptions::create()->includeGlobal());

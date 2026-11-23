@@ -38,7 +38,7 @@ final class ClientTest extends TestCase
         $client = new Client(
             'https://reviews.example.com',
             'ocr_live_secret',
-            'mbizmarket',
+            'example',
             ($options ?? (new ClientOptions())->withApplication('storefront'))->withHttpClient($this->http),
         );
         // Tests never sleep: record the waits instead.

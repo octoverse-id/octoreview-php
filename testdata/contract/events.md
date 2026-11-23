@@ -14,7 +14,7 @@ Every delivered event is one JSON document:
   "id": "8d0c5a2e-7f0a-4b8e-9d55-2f4f8d6f3a10",
   "type": "review.published",
   "occurred_at": "2026-11-19T10:15:00.123456+00:00",
-  "tenant_id": "mbizmarket",
+  "tenant_id": "example",
   "application_id": "marketplace",
   "namespace_type": null,
   "namespace_id": null,
