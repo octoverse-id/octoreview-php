@@ -278,6 +278,26 @@ final class Transport
         return [$this->options->namespaceType, $this->options->namespaceId];
     }
 
+    /**
+     * Waits before a retry (tests replace the sleep).
+     *
+     * @internal
+     */
+    public function pause(float $seconds): void
+    {
+        ($this->sleep)($seconds);
+    }
+
+    /**
+     * The default backoff before retry number $attempt: 0.25 s doubling to 5 s, with jitter.
+     *
+     * @internal
+     */
+    public function retryDelay(int $attempt): float
+    {
+        return self::backoff($attempt);
+    }
+
     private function retriableNetworkFailure(TransportException $e): bool
     {
         return $e->networkFailure;

@@ -21,6 +21,25 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Typed exceptions (`ApiException` with the 39 `ErrorCode` constants, `TransportException`,
   `NotModifiedException`, `MalformedResponseException`, `ConfigurationException`) whose messages
   never carry the key, a signature or a media token.
+- Uploads: `media()->uploadFile()`, `uploadBytes()` and `uploadStream()` (intent, PUT,
+  complete). The PUT uses a separate PSR-18 client with only the signed headers and an explicit
+  `Content-Length`, follows no redirects, retries on the same URL until it expires, and frees the
+  slot after a terminal failure unless another call completed the upload. `UploadException`
+  reports the stage, ids, request ids and the provider's code with a fix, never the signed URL.
+  Progress reporting through `UploadOptions`.
+- Webhooks: `Webhook::verify()` / `$client->webhooks()->verify()` (constant time, 300 s
+  tolerance) and typed payloads (`review()`, `media()`, `ratingChanged()`, `authorErased()`),
+  checked against the vendored `events.md`.
+- `examples/quickstart.php`, the integration suite (`make integration`) against the pinned server
+  image, fixtures captured from it (`make fixtures`), the real `integration` CI job, and the
+  weekly `contract-drift` workflow.
+- The contract gate also checks each operation's response model against the schema the
+  contract names for it, both directions, and that decoded fixtures hold non-default values.
+  `health()->live()` and `health()->ready()` return `HealthLive` and `HealthReady`, which match
+  their schemas (one `HealthStatus` model served both).
+- `guzzlehttp/psr7` `^2.5.1` is a declared dependency (the SDK uses its classes directly; Guzzle 7.8
+  alone still allows psr7 1.x, which lacks them). CI's `test (8.2)` job also runs the suite with
+  the lowest allowed dependencies.
 - The offline contract gate against the vendored server contract (`make contract`), real
   `static`, `test (8.2)`, `test (8.3)`, `test (8.4)` and `contract` CI jobs.
 - Repository bootstrap: Apache-2.0 license, governance files (AGENTS.md, CONTRIBUTING,

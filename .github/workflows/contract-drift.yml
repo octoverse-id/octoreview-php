@@ -1,0 +1,55 @@
+name: Contract drift
+
+# Weekly: vendor the server's newest released contract (the newest -rc.N tag until a final
+# release exists, then the newest vX.Y.Z; main before any tag), run the contract gate against it,
+# and run the integration suite against the server's :edge image. A failure opens an issue
+# (server docs/spec.md sections 18 and 19). It changes nothing in this repository: refreshing
+# the vendored contract is a reviewed PR (`make vendor-contract`).
+
+on:
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: "8.2"
+          coverage: none
+          tools: composer:v2
+      - name: Install dependencies
+        run: make install
+      - name: Set up uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      - name: Vendor the newest server contract
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tags=$(git ls-remote --tags --refs https://github.com/octoverse-id/octoreview 'v*' | sed 's#.*refs/tags/##')
+          final=$(printf '%s\n' "$tags" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1 || true)
+          candidate=$(printf '%s\n' "$tags" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$' | sort -V | tail -n1 || true)
+          ref=${final:-${candidate:-main}}
+          echo "server contract: $ref"
+          scripts/vendor-contract.sh "$ref"
+      - name: Contract gate against it
+        run: make contract
+      - name: Integration suite against the server's edge image
+        run: make integration SERVER_IMAGE=ghcr.io/octoverse-id/octoreview:edge
+      - name: Open an issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create --repo "$GITHUB_REPOSITORY" \
+            --title "Contract drift against the server ($(date -u +%F))" \
+            --body "The weekly contract-drift run failed: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. Run \`make vendor-contract\` and \`make contract\` locally to see the drift."
