@@ -164,7 +164,7 @@ final class MediaService extends Service
      * retry-safe; one is generated when absent, so a retried intent returns the same media.
      * `kind` is "image" or "video".
      *
-     * @param array{client_upload_id?: string, position?: int, width?: int, height?: int, duration_seconds?: float} $fields
+     * @param array{client_upload_id?: ?string, position?: int, width?: int, height?: int, duration_seconds?: float} $fields null or absent: one is generated
      */
     public function createUpload(
         string $reviewId,
@@ -174,7 +174,8 @@ final class MediaService extends Service
         array $fields = [],
         ?CallOptions $options = null,
     ): MediaUpload {
-        $fields += ['client_upload_id' => self::uploadId()];
+        // ??=, not +=: an explicit null must not leave a keyed (retried) call without its key.
+        $fields['client_upload_id'] ??= self::uploadId();
 
         return $this->one('createMediaUpload', [$reviewId], [
             'kind' => $kind,

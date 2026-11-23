@@ -153,6 +153,19 @@ final class ClientTest extends TestCase
         self::assertSame($first, $second, 'a retry must send the same key');
     }
 
+    public function testANullUploadKeyIsReplacedAndReusedByRetries(): void
+    {
+        $this->http->push(RecordingClient::error(503, ErrorCode::STORAGE_UNAVAILABLE), self::fixture('createMediaUpload'));
+        $this->client()->media()->createUpload('r-1', 'image', 'image/png', 3, ['client_upload_id' => null]);
+        [$first, $second] = array_map(
+            static fn($r): mixed => json_decode((string) $r->getBody(), true)['client_upload_id'],
+            $this->http->requests,
+        );
+        self::assertIsString($first);
+        self::assertMatchesRegularExpression('/^[0-9a-f-]{36}$/', $first);
+        self::assertSame($first, $second);
+    }
+
     public function testTheCallApplicationWinsOverTheClientDefault(): void
     {
         $this->http->push(self::fixture('getEntity'), self::fixture('createReview'));
@@ -253,18 +266,19 @@ final class ClientTest extends TestCase
 
     public function testResultsCarryTheEtagAndConditionalReadsThrowNotModified(): void
     {
-        $this->http->push(self::fixture('getEntity', 200, ['ETag' => '"v1"', 'X-Request-ID' => 'req-1']), new Response(304));
+        $this->http->push(self::fixture('getEntity', 200, ['ETag' => '"v1"', 'X-Request-ID' => 'req-1']), new Response(304, ['X-Request-ID' => 'req-304']));
         $client = $this->client();
         $entity = $client->entities()->get('e-1');
         self::assertSame('"v1"', $entity->meta->etag);
         self::assertSame('req-1', $entity->meta->requestId);
 
-        $this->expectException(NotModifiedException::class);
         try {
             $client->entities()->get('e-1', CallOptions::create()->ifNoneMatch('"v1"'));
-        } finally {
-            self::assertSame('"v1"', $this->http->last()->getHeaderLine('If-None-Match'));
+            self::fail('expected NotModifiedException');
+        } catch (NotModifiedException $e) {
+            self::assertSame('req-304', $e->requestId);
         }
+        self::assertSame('"v1"', $this->http->last()->getHeaderLine('If-None-Match'));
     }
 
     public function testAnErrorEnvelopeBecomesATypedException(): void
@@ -338,7 +352,9 @@ final class ClientTest extends TestCase
             new ConnectException("failed for Bearer {$sentinel} at {$signed}", new Request('GET', $signed)),
             RecordingClient::json(400, ['error' => [
                 'code' => 'validation_failed', 'message' => "bad {$sentinel} {$signed} /api/v1/media-uploads/tok123",
-                'details' => [], 'request_id' => 'r', 'doc_url' => '', 'retryable' => false,
+                // A free-form details field (details.reason) can carry a signed URL too, nested or not.
+                'details' => ['reason' => "fetch {$signed}", 'nested' => [['key' => $sentinel]]],
+                'request_id' => 'r', 'doc_url' => '', 'retryable' => false,
             ]]),
         );
         $client = $this->client((new ClientOptions())->withApplication('storefront')->withRetry(1, 30));
@@ -351,6 +367,7 @@ final class ClientTest extends TestCase
                 foreach ([$sentinel, 'X-Amz-Signature', 'deadbeef', 'tok123'] as $secret) {
                     self::assertStringNotContainsString($secret, $e->getMessage());
                     self::assertStringNotContainsString($secret, (string) $e);
+                    self::assertStringNotContainsString($secret, (string) json_encode($e instanceof ApiException ? $e->details : []));
                 }
                 self::assertNull($e->getPrevious());
             }
