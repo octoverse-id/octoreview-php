@@ -7,6 +7,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- `ApiException::$details` is redacted like the message: every string, recursively (a free-form
+  `details.reason` could carry a signed URL into logs).
+- `NotModifiedException` carries the 304 response's `requestId`.
+- `media()->createUpload()` generates `client_upload_id` when the caller passes `null`, so a
+  retried intent always has a stable key.
+
 ### Added
 
 - The client core (PHP 8.2+, PSR-18 with Guzzle by default): `new Client()` and

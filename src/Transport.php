@@ -230,7 +230,7 @@ final class Transport
         }
         $status = $response->getStatusCode();
         if ($status === 304) {
-            throw new NotModifiedException(sprintf('octoreview: %s is unchanged (ETag %s)', $op->id, $call?->ifNoneMatch));
+            throw new NotModifiedException(sprintf('octoreview: %s is unchanged (ETag %s)', $op->id, $call?->ifNoneMatch), $meta->requestId);
         }
         if (($status >= 200 && $status < 300) || $status === $acceptStatus) {
             $decoded = json_decode($raw, true);
