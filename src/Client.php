@@ -21,7 +21,7 @@ use Octoverse\Octoreview\Upload\Uploader;
  * The Octoreview client. One instance per service key; it is immutable and safe to share.
  *
  * ```php
- * $client = new Client('https://reviews.example.com', getenv('OCTOREVIEW_API_KEY'), 'mbizmarket',
+ * $client = new Client('https://reviews.example.com', getenv('OCTOREVIEW_API_KEY'), 'example',
  *     (new ClientOptions())->withApplication('storefront'));
  * $review = $client->reviews()->create('user-42', 5, ['entity_type' => 'product', 'external_id' => 'sku-1']);
  * ```

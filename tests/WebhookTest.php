@@ -18,8 +18,8 @@ use PHPUnit\Framework\TestCase;
 final class WebhookTest extends TestCase
 {
     // Signed by the server's own octoreview.events.dispatch.webhook_signature (secret whsec-test).
-    private const BODY = '{"id": "8d0c5a2e-7f0a-4b8e-9d55-2f4f8d6f3a10", "type": "review.published", "occurred_at": "2026-11-19T10:15:00.123456+00:00", "tenant_id": "mbizmarket", "application_id": "storefront", "namespace_type": null, "namespace_id": null, "resource_type": "review", "resource_id": "1f9e7c5a-0b2d-4c8e-a6f1-3d5b7e9c1a20", "request_id": "req_1", "data": {"review_id": "1f9e7c5a-0b2d-4c8e-a6f1-3d5b7e9c1a20", "entity_id": "2a8f6d4b-1c3e-4f5a-9b7d-0e2c4a6b8d10", "entity_type": "product", "external_id": "sku-1", "status": "published", "previous_status": null, "rating": 5, "is_verified_purchase": true, "version": 2, "media_version": 1}}';
-    private const SIGNATURE = 't=1795000000,v1=7b1afd134873f95a6cfb82cbaaa586b5d3ef2e4ed05fb00976c683f0fb9faf9b';
+    private const BODY = '{"id": "8d0c5a2e-7f0a-4b8e-9d55-2f4f8d6f3a10", "type": "review.published", "occurred_at": "2026-11-19T10:15:00.123456+00:00", "tenant_id": "example", "application_id": "storefront", "namespace_type": null, "namespace_id": null, "resource_type": "review", "resource_id": "1f9e7c5a-0b2d-4c8e-a6f1-3d5b7e9c1a20", "request_id": "req_1", "data": {"review_id": "1f9e7c5a-0b2d-4c8e-a6f1-3d5b7e9c1a20", "entity_id": "2a8f6d4b-1c3e-4f5a-9b7d-0e2c4a6b8d10", "entity_type": "product", "external_id": "sku-1", "status": "published", "previous_status": null, "rating": 5, "is_verified_purchase": true, "version": 2, "media_version": 1}}';
+    private const SIGNATURE = 't=1795000000,v1=0bc8a000e4f4aee9b555b260a8f723569694a5ac8449ae1375fe1620d7165722';
     private const SECRET = 'whsec-test';
     private const NOW = 1795000000 + 60;
 

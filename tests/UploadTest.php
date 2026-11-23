@@ -90,7 +90,7 @@ final class UploadTest extends TestCase
 
     private function client(): Client
     {
-        $client = new Client('https://reviews.example.com', 'ocr_live_secret', 'mbizmarket', (new ClientOptions())
+        $client = new Client('https://reviews.example.com', 'ocr_live_secret', 'example', (new ClientOptions())
             ->withApplication('storefront')
             ->withNamespace('store', 's-1')
             ->withActor('admin-7')
