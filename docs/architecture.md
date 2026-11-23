@@ -13,7 +13,10 @@ share the operation table's shape, the retry classes and the gate's checks.
 | `src/Transport.php`, `src/Redactor.php` | Parameter checks and the query/body split, headers, path escaping, application and namespace defaults, retries, the data envelope, error parsing and redaction |
 | `src/Resource/*Service.php` | `$client-><resource>()-><method>(...)` for every operation, plus the `ratings()->get` helper |
 | `src/Model/*.php` | Readonly response models, `Page`, and `Data` (typed reads that fail loudly on a missing field) |
-| `src/Exception/*.php`, `src/ErrorCode.php` | `ApiException` and the 39 code constants, `TransportException`, `NotModifiedException`, `MalformedResponseException`, `ConfigurationException` |
+| `src/Exception/*.php`, `src/ErrorCode.php` | `ApiException` and the 39 code constants, `TransportException`, `NotModifiedException`, `MalformedResponseException`, `ConfigurationException`, `UploadException`, `InvalidSignatureException` |
+| `src/Upload/*.php`, `src/UploadOptions.php` | The media PUT (`Uploader`), progress reporting, and the upload helpers' options |
+| `src/Webhook/*.php` | `Webhook::verify()`, the `Event` envelope, the four payload types and the event type constants |
+| `examples/quickstart.php` | The quickstart CI runs against the real server |
 
 Dependencies: PSR-18/PSR-17 interfaces, with Guzzle 7 as the default client
 (`ClientOptions::withHttpClient()` takes any PSR-18 client).
@@ -36,14 +39,20 @@ names the server commit. `tests/ContractTest.php` checks:
   the same method, path, body fields and query parameters (both directions);
 - each row's PHP name, retry class, required and optional parameters equal the surface's;
 - every surface method and helper exists on the client, and the client declares nothing else
-  (reflection; the upload and webhook helpers are listed as pending until the next PR, and the
-  test fails if one exists while still listed);
+  (reflection);
 - the error code constants equal the contract's `ErrorCode` enum;
 - a recording PSR-18 client calls every operation with self-describing values (`v:entity_type`,
   `v/review_id`, distinct numbers): method, escaped path, each value under its own name in the
   query or the body, credentials, namespace and actor headers exactly where the contract declares
-  them. Each call decodes a real server response from `testdata/fixtures`;
-- the README's retry table matches the operation table.
+  them. Each call decodes a real server response from `testdata/fixtures`, captured by this
+  SDK's integration suite (`make fixtures`);
+- the README's retry table matches the operation table;
+- every event type and payload field in the vendored `events.md` exists in `src/Webhook`, and
+  nothing else (`tests/WebhookTest.php`).
+
+`.github/workflows/contract-drift.yml` runs weekly. It vendors the newest server contract (the
+newest `-rc.N` tag until a final release exists), runs the gate against it and the integration
+suite against `:edge`, and opens an issue when either fails.
 
 ## Retries
 
@@ -52,3 +61,35 @@ retried on network failures, 503 and 429 (and `complete` on `complete_in_progres
 `upload_changed`), up to `maxAttempts`, honoring `Retry-After` up to `maxRetryAfterSeconds`;
 `unsafe` calls never are. `createUpload` fills in `client_upload_id` (a UUID v4) before the
 first attempt, so every retry sends the same key.
+
+Exceptions never chain the HTTP client's own exception: its message can carry the key or a
+signed URL, and PHP prints the whole chain when an exception is cast to a string.
+
+## Uploads (`src/Upload`, `MediaService::upload*`)
+
+`uploadFile`, `uploadBytes` and `uploadStream` compose `createUpload`, a PUT and `complete`.
+
+- **The PUT** uses its own PSR-18 client (`ClientOptions::withUploadHttpClient()`). The default
+  Guzzle client follows no redirects, has no total timeout but fails a transfer under 1 byte/s
+  for 60 s, and never sends `Expect: 100-continue`. Only the signed headers plus an explicit
+  `Content-Length` are sent, so credentials never reach a storage provider.
+- **Retries:** network failures, 429 and 5xx retry up to 3 times on the same URL while it stays
+  valid, rewinding the stream; a `Retry-After` past the URL's expiry ends the upload.
+- **Failures:** S3's XML `<Code>` (or the local backend's JSON code) becomes `providerCode` with a
+  `fix`. A terminal PUT failure asks `complete` first: a ready answer means another call with the
+  same client upload id finished the upload, so that media is returned; only `upload_not_found`
+  (no bytes landed) deletes the pending media.
+
+## The integration suite
+
+`make integration` boots the pinned server image as one container: SQLite, the local backend,
+and the demo seed through the server's compose start script. It copies out
+`.octoreview-dev.env`, runs `examples/quickstart.php`, then runs the `integration` test suite
+(`tests/Integration`) over the main flows:
+- entity media limits, two uploads and the third refused;
+- ratings by key and in batch;
+- pre-moderation, the version guard and revisions;
+- media moderation, erasure, audit logs and health.
+
+It restores the application's settings afterwards. `make fixtures` also saves one response per
+operation into `testdata/fixtures`.

@@ -24,9 +24,6 @@ use PHPUnit\Framework\TestCase;
 #[Group('contract')]
 final class ContractTest extends TestCase
 {
-    /** Surface helpers that arrive with the next PR (uploads and webhooks); none may exist yet. */
-    private const PENDING_HELPERS = ['media()->uploadFile', 'media()->uploadBytes', 'media()->uploadStream', 'webhooks()->verify'];
-
     private const RETRY_BEHAVIOR = [
         'safe' => 'a read: retried on timeouts, 503 and 429, honoring Retry-After',
         'idempotent' => 'repeats to the same state: retried like a read',
@@ -84,10 +81,6 @@ final class ContractTest extends TestCase
         }
         $declared = self::declaredMethods();
         foreach ($named as $name) {
-            if (in_array($name, self::PENDING_HELPERS, true)) {
-                self::assertNotContains($name, $declared, "{$name} exists now: remove it from PENDING_HELPERS");
-                continue;
-            }
             self::assertContains($name, $declared, "the surface names {$name}, which the client lacks");
         }
         foreach ($declared as $name) {

@@ -14,6 +14,8 @@ use Octoverse\Octoreview\Resource\MediaService;
 use Octoverse\Octoreview\Resource\RatingsService;
 use Octoverse\Octoreview\Resource\ReviewsService;
 use Octoverse\Octoreview\Resource\SettingsService;
+use Octoverse\Octoreview\Resource\WebhooksService;
+use Octoverse\Octoreview\Upload\Uploader;
 
 /**
  * The Octoreview client. One instance per service key; it is immutable and safe to share.
@@ -28,6 +30,7 @@ final class Client
 {
     private readonly Transport $transport;
     private readonly EntitiesService $entities;
+    private readonly Uploader $uploader;
 
     public function __construct(string $baseUrl, string $apiKey, string $tenantId, ClientOptions $options = new ClientOptions())
     {
@@ -47,6 +50,22 @@ final class Client
         ]);
         $this->transport = new Transport($baseUrl, $apiKey, $tenantId, $options, $http);
         $this->entities = new EntitiesService($this->transport);
+        $this->uploader = new Uploader($options->uploadHttpClient ?? self::uploadClient(), $this->transport);
+    }
+
+    /**
+     * The media PUT's client: no redirects (PSR-18 sendRequest never follows them), no total
+     * timeout so a large video can take its time, but a stalled transfer (under 1 byte/s for
+     * 60 s) fails, and never `Expect: 100-continue`.
+     */
+    private static function uploadClient(): GuzzleClient
+    {
+        $config = ['connect_timeout' => 10, 'timeout' => 0, 'expect' => false];
+        if (defined('CURLOPT_LOW_SPEED_LIMIT') && defined('CURLOPT_LOW_SPEED_TIME')) {
+            $config['curl'] = [CURLOPT_LOW_SPEED_LIMIT => 1, CURLOPT_LOW_SPEED_TIME => 60];
+        }
+
+        return new GuzzleClient($config);
     }
 
     /**
@@ -105,7 +124,7 @@ final class Client
 
     public function media(): MediaService
     {
-        return new MediaService($this->transport);
+        return new MediaService($this->transport, $this->uploader);
     }
 
     public function authors(): AuthorsService
@@ -116,5 +135,11 @@ final class Client
     public function auditLogs(): AuditLogsService
     {
         return new AuditLogsService($this->transport);
+    }
+
+    /** Webhook verification; it uses no client state, so Webhook::verify() works without a client too. */
+    public function webhooks(): WebhooksService
+    {
+        return new WebhooksService();
     }
 }
