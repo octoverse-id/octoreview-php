@@ -38,7 +38,7 @@ vendor-contract: ## Refresh testdata/contract from the server (SERVER=<ref or ch
 
 # The published sha-<commit> image of the server's main branch that CI's integration job runs
 # against (docs/versioning.md); the weekly contract-drift workflow runs against :edge.
-SERVER_IMAGE ?= ghcr.io/octoverse-id/octoreview:sha-bfa29155061e89a8f6c07496fa8b820b9e3c7440
+SERVER_IMAGE ?= ghcr.io/octoverse-id/octoreview:sha-c324de22fab81afd0770b283f1447d2eeb6376e9
 
 integration: vendor/autoload.php ## Run the quickstart and the integration suite against SERVER_IMAGE, with local and S3 media (needs Docker)
 	@./scripts/integration.sh $(SERVER_IMAGE) local

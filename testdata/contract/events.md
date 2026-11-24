@@ -207,7 +207,7 @@ An upload completed and passed validation.
 | `kind` | string | `image` or `video` |
 | `status` | string | `invalid` |
 | `moderation_status` | string | `none` |
-| `reason` | string | `size_mismatch`, `type_mismatch`, `over_limit` or `over_quota` |
+| `reason` | string | `size_mismatch`, `type_mismatch`, `type_not_allowed`, `too_large`, `over_limit` or `over_quota` |
 
 ### review_media.deleted
 

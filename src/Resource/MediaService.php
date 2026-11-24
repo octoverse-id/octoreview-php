@@ -12,6 +12,7 @@ use Octoverse\Octoreview\Exception\OctoreviewException;
 use Octoverse\Octoreview\Exception\UploadException;
 use Octoverse\Octoreview\Model\Media;
 use Octoverse\Octoreview\Model\MediaUpload;
+use Octoverse\Octoreview\Model\Page;
 use Octoverse\Octoreview\Transport;
 use Octoverse\Octoreview\Upload\PutFailedException;
 use Octoverse\Octoreview\Upload\Uploader;
@@ -150,13 +151,17 @@ final class MediaService extends Service
     }
 
     /**
-     * @param array{author_id?: string, include_unpublished?: bool} $params
+     * One page of a review's media in position order (server default 20, at most 100 per page).
+     * Unlike the review's embedded list it is not capped: `pagination->count` is the total, and
+     * `offset` walks the rest.
      *
-     * @return list<Media>
+     * @param array{author_id?: string, include_unpublished?: bool, limit?: int, offset?: int} $params
+     *
+     * @return Page<Media>
      */
-    public function list(string $reviewId, array $params = [], ?CallOptions $options = null): array
+    public function list(string $reviewId, array $params = [], ?CallOptions $options = null): Page
     {
-        return $this->many('listReviewMedia', [$reviewId], $params, $options, static fn(array $data): Media => Media::fromArray($data));
+        return $this->page('listReviewMedia', [$reviewId], $params, $options, static fn(array $data): Media => Media::fromArray($data));
     }
 
     /**
