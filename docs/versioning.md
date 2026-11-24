@@ -16,12 +16,12 @@ PHP 8.2 or newer: PHP 8.1 reached end of life on 2025-12-31, so there is no olde
 
 | SDK | Server contract |
 | --- | --- |
-| unreleased (`main`) | `docs/openapi.yaml` at the commit in `testdata/contract/SOURCE` (server `1.0.0-rc.1` line) |
+| unreleased (`main`) | `docs/openapi.yaml` at the commit in `testdata/contract/SOURCE` (server `1.0.0-rc.2` line; `1.0.0-rc.1` was never tagged) |
 
 ## The server image CI runs against
 
 `SERVER_IMAGE` in the Makefile pins the `integration` job to one published image of the
-server's `main` branch: `ghcr.io/octoverse-id/octoreview:sha-bfa29155061e89a8f6c07496fa8b820b9e3c7440`.
+server's `main` branch: `ghcr.io/octoverse-id/octoreview:sha-c324de22fab81afd0770b283f1447d2eeb6376e9`.
 A bump PR moves it (and refreshes `testdata/contract` and `testdata/fixtures` with
 `make vendor-contract SERVER=<commit>` and `make fixtures`). The weekly `contract-drift`
 workflow runs the same suite against `:edge` and opens an issue when it fails.

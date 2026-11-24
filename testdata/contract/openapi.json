@@ -359,7 +359,13 @@
       "$ref": "#/components/schemas/NullableCount"
      },
      "max_storage_bytes": {
-      "$ref": "#/components/schemas/NullableCount"
+      "description": "At most 2^53 - 1, so every SDK language holds it exactly.",
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "type": [
+       "integer",
+       "null"
+      ]
      },
      "max_video_bytes": {
       "$ref": "#/components/schemas/NullableCount"
@@ -1101,6 +1107,7 @@
       ]
      },
      "height": {
+      "maximum": 2147483647,
       "minimum": 1,
       "type": [
        "integer",
@@ -1116,6 +1123,7 @@
      },
      "position": {
       "default": 0,
+      "maximum": 2147483647,
       "minimum": 0,
       "type": "integer"
      },
@@ -1124,6 +1132,7 @@
       "type": "integer"
      },
      "width": {
+      "maximum": 2147483647,
       "minimum": 1,
       "type": [
        "integer",
@@ -1165,6 +1174,24 @@
     },
     "required": [
      "data"
+    ],
+    "type": "object"
+   },
+   "MediaList": {
+    "properties": {
+     "data": {
+      "items": {
+       "$ref": "#/components/schemas/Media"
+      },
+      "type": "array"
+     },
+     "pagination": {
+      "$ref": "#/components/schemas/Pagination"
+     }
+    },
+    "required": [
+     "data",
+     "pagination"
     ],
     "type": "object"
    },
@@ -1759,7 +1786,7 @@
   },
   "summary": "Reviews, ratings and review media for any external entity.",
   "title": "Octoreview API",
-  "version": "1.0.0-rc.1"
+  "version": "1.0.0-rc.2"
  },
  "openapi": "3.1.0",
  "paths": {
@@ -3195,6 +3222,12 @@
      },
      {
       "$ref": "#/components/parameters/IncludeUnpublished"
+     },
+     {
+      "$ref": "#/components/parameters/Limit"
+     },
+     {
+      "$ref": "#/components/parameters/Offset"
      }
     ],
     "responses": {
@@ -3202,22 +3235,11 @@
       "content": {
        "application/json": {
         "schema": {
-         "properties": {
-          "data": {
-           "items": {
-            "$ref": "#/components/schemas/Media"
-           },
-           "type": "array"
-          }
-         },
-         "required": [
-          "data"
-         ],
-         "type": "object"
+         "$ref": "#/components/schemas/MediaList"
         }
        }
       },
-      "description": "The media, in position order."
+      "description": "A page of the media, in position order."
      },
      "401": {
       "$ref": "#/components/responses/Unauthorized"
@@ -3232,7 +3254,7 @@
       "$ref": "#/components/responses/Error"
      }
     },
-    "summary": "Every non-deleted media item of the review (no embed cap).",
+    "summary": "Page through every non-deleted media item of the review (no embed cap).",
     "tags": [
      "media"
     ]

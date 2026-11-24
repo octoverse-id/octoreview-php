@@ -273,7 +273,7 @@ final class ContractTest extends TestCase
             'getReviewRevision' => static fn(Client $c, CallOptions $o) => $c->reviews()->getRevision($v('review_id'), $o),
             'approveReviewRevision' => static fn(Client $c, CallOptions $o) => $c->reviews()->approveRevision($v('review_id'), $v('revision_id'), $v('expected_version'), $v('expected_media_version'), $o),
             'rejectReviewRevision' => static fn(Client $c, CallOptions $o) => $c->reviews()->rejectRevision($v('review_id'), $v('revision_id'), $o),
-            'listReviewMedia' => static fn(Client $c, CallOptions $o) => $c->media()->list($v('review_id'), $p('author_id', 'include_unpublished'), $o),
+            'listReviewMedia' => static fn(Client $c, CallOptions $o) => $c->media()->list($v('review_id'), $p('author_id', 'include_unpublished', 'limit', 'offset'), $o),
             'createMediaUpload' => static fn(Client $c, CallOptions $o) => $c->media()->createUpload($v('review_id'), $v('kind'), $v('content_type'), $v('size_bytes'), $p('client_upload_id', 'position', 'width', 'height', 'duration_seconds'), $o),
             'completeMediaUpload' => static fn(Client $c, CallOptions $o) => $c->media()->complete($v('review_id'), $v('media_id'), $o),
             'deleteMedia' => static fn(Client $c, CallOptions $o) => $c->media()->delete($v('review_id'), $v('media_id'), $o),

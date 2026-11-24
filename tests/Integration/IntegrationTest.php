@@ -86,7 +86,13 @@ final class IntegrationTest extends TestCase
         $listed = $client->reviews()->list(['entity_id' => $entity->id, 'has_media' => true]);
         self::assertSame(1, $listed->pagination->count);
         self::assertCount(2, $listed->items[0]->media);
-        self::assertCount(2, $client->media()->list($review->id));
+        $media = $client->media()->list($review->id);
+        self::assertSame(2, $media->pagination->count);
+        self::assertCount(2, $media->items);
+        $second = $client->media()->list($review->id, ['limit' => 1, 'offset' => 1]);
+        self::assertSame(1, $second->pagination->limit);
+        self::assertCount(1, $second->items);
+        self::assertSame($media->items[1]->id, $second->items[0]->id);
 
         // Pre-moderation: a new review waits; the version guard protects publishing.
         $app = $client->settings()->get();

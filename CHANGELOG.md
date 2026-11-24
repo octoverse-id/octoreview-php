@@ -7,6 +7,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- `media()->list()` pages like every other list: it takes `limit`/`offset` and returns a
+  `Page<Media>` (`items` plus `pagination`) instead of `list<Media>`. The server's
+  `listReviewMedia` answers the `{data, pagination}` envelope from
+  `sha-c324de22fab81afd0770b283f1447d2eeb6376e9`, which `SERVER_IMAGE` now pins, and the vendored
+  contract and fixtures come from that commit.
+
 ### Fixed
 
 - `ApiException::$details` is redacted like the message: every string, recursively (a free-form
