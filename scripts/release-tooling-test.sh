@@ -9,6 +9,12 @@ scripts=$PWD/scripts
 repo=$(mktemp -d "${TMPDIR:-/tmp}/release-tooling.XXXXXX")
 trap 'rm -rf "$repo" "$repo.root"' EXIT
 
+# Hermetic git: no global or system config (a CI runner has no identity, a laptop may sign
+# commits or run hooks), and one identity for every commit and tag below.
+export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
+export GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@example.invalid
+export GIT_COMMITTER_NAME=t GIT_COMMITTER_EMAIL=t@example.invalid
+
 # --- this repository's version stamp -----------------------------------------------------------
 write_stamp() { # DIR VERSION
   mkdir -p "$1/src"
@@ -27,11 +33,7 @@ expect() { # CODE LABEL -- COMMAND...
     failures=$((failures + 1))
   fi
 }
-g() {
-  GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@example.invalid GIT_COMMITTER_NAME=t \
-    GIT_COMMITTER_EMAIL=t@example.invalid git -C "$repo" -c commit.gpgsign=false \
-    -c tag.gpgsign=false -c core.hooksPath=/dev/null "$@"
-}
+g() { git -C "$repo" "$@"; }
 changelog() { # DIR HEADING...
   local dir=$1
   shift
@@ -86,9 +88,9 @@ expect 0 "the final release after its candidates" -- "$scripts/check-release-mer
 
 mkdir "$repo.root"
 write_stamp "$repo.root" 0.1.0
-(cd "$repo.root" && GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@example.invalid GIT_COMMITTER_NAME=t \
-  GIT_COMMITTER_EMAIL=t@example.invalid git init -q -b main && git add -A &&
-  git -c commit.gpgsign=false -c core.hooksPath=/dev/null commit -q -m root)
+git -C "$repo.root" init -q -b main
+git -C "$repo.root" add -A
+git -C "$repo.root" commit -q -m root
 expect 0 "a root commit" -- "$scripts/check-release-merge.sh" 0.1.0 HEAD "$repo.root"
 
 # version-check reads the working tree.
