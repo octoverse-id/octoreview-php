@@ -52,6 +52,12 @@ llms-check: ## Fail when llms.txt links a missing local path (and prove the chec
 	@./scripts/check-llms-txt.sh
 	@./scripts/check-llms-txt-test.sh
 
+version-check: ## Fail unless src/Version.php and a CHANGELOG heading name one releasable version (a release PR's gate)
+	@./scripts/version-check.sh
+
+release-tooling-check: ## Prove the release scripts (version-check, check-release-merge, release-notes) pass and fail as documented
+	@./scripts/release-tooling-test.sh
+
 actionlint: ## Lint GitHub Actions workflows (needs actionlint on PATH)
 	@actionlint -color
 
@@ -60,11 +66,11 @@ placeholder-check: ## Fail while any bootstrap CI placeholder job remains
 		echo "placeholder-check: bootstrap placeholder jobs remain; replace them before a release" >&2; exit 1; \
 	fi; echo "placeholder-check OK"
 
-check: validate cs stan test contract llms-check ## Fast gate (PHP and Composer only)
+check: validate cs stan test contract llms-check release-tooling-check ## Fast gate (PHP and Composer only)
 
 release-check: check integration placeholder-check ## Full pre-release gate (needs Docker; fails while placeholders remain)
 
 export-rulesets: ## Export the live rulesets into .github/rulesets/ (needs gh with repo admin)
 	@./scripts/export-rulesets.sh
 
-.PHONY: help install validate cs cs-fix stan test contract vendor-contract integration fixtures llms-check actionlint placeholder-check check release-check export-rulesets
+.PHONY: help install validate cs cs-fix stan test contract vendor-contract integration fixtures llms-check version-check release-tooling-check actionlint placeholder-check check release-check export-rulesets
