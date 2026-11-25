@@ -7,6 +7,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-25
+
 ### Changed
 
 - The integration suite runs against the server's `1.0.0-rc.3` image (`SERVER_IMAGE`), the
