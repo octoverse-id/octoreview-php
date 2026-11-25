@@ -162,6 +162,11 @@ jobs:
           PRERELEASE: ${{ steps.params.outputs.prerelease }}
         run: |
           set -euo pipefail
+          # A re-run after the release was created finds it and stops here.
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            echo "the GitHub release v$VERSION already exists"
+            exit 0
+          fi
           flags=(--verify-tag --title "v$VERSION" --notes-file "$RUNNER_TEMP/notes.md")
           [ "$PRERELEASE" = true ] && flags+=(--prerelease)
           gh release create "v$VERSION" "${flags[@]}"
