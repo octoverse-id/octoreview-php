@@ -9,6 +9,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- The integration suite runs against the server's `1.0.0-rc.3` image (`SERVER_IMAGE`), the
+  release candidate `0.1.0` ships with, and the vendored contract and fixtures come from its
+  release merge (`20aca25`).
 - `media()->list()` pages like every other list: it takes `limit`/`offset` and returns a
   `Page<Media>` (`items` plus `pagination`) instead of `list<Media>`. The server's
   `listReviewMedia` answers the `{data, pagination}` envelope from
