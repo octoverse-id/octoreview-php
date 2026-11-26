@@ -37,9 +37,9 @@ vendor-contract: ## Refresh testdata/contract from the server (SERVER=<ref or ch
 	@./scripts/vendor-contract.sh $(or $(SERVER),main)
 
 # The server image CI's integration job runs against (docs/versioning.md): the latest server
-# release candidate (release tags never move), or a published sha-<commit> of the server's main
+# release (release tags never move), or a published sha-<commit> of the server's main
 # branch between releases. The weekly contract-drift workflow runs against :edge.
-SERVER_IMAGE ?= ghcr.io/octoverse-id/octoreview:1.0.0-rc.4
+SERVER_IMAGE ?= ghcr.io/octoverse-id/octoreview:1.0.0
 
 integration: vendor/autoload.php ## Run the quickstart and the integration suite against SERVER_IMAGE, with local and S3 media (needs Docker)
 	@./scripts/integration.sh $(SERVER_IMAGE) local
