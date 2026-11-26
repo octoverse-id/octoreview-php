@@ -7,6 +7,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- The integration suite runs against the server's `1.0.0-rc.4` image (`SERVER_IMAGE`), and the
+  vendored contract and fixtures come from its release merge (`985c52e`). rc.4 adds an `ETag`,
+  and a 304 on `If-None-Match`, to review list and detail and the rating summary; the suite now
+  makes a conditional rating read and expects the 304 (`NotModifiedException`).
+
 ## [0.1.0] - 2026-11-25
 
 ### Changed

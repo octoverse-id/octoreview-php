@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Octoverse\Octoreview\Tests\Integration;
 
 use GuzzleHttp\Client as GuzzleClient;
+use Octoverse\Octoreview\CallOptions;
 use Octoverse\Octoreview\Client;
 use Octoverse\Octoreview\ClientOptions;
 use Octoverse\Octoreview\ErrorCode;
 use Octoverse\Octoreview\Exception\ApiException;
+use Octoverse\Octoreview\Exception\NotModifiedException;
 use Octoverse\Octoreview\Exception\UploadException;
 use Octoverse\Octoreview\Model\ApplicationSettings;
 use Octoverse\Octoreview\UploadOptions;
@@ -83,6 +85,15 @@ final class IntegrationTest extends TestCase
         self::assertCount(2, $batch);
         self::assertNull($batch[1]->entityId);
         self::assertSame(1, $forEntity->ratingCount);
+        // The server answers conditional reads from 1.0.0-rc.4 (its spec 5.3). The rating summary's
+        // ETag does not carry the signing epoch, so an unchanged summary always answers 304.
+        $etag = $forEntity->meta->etag;
+        self::assertNotNull($etag);
+        try {
+            $client->ratings()->forEntity($entity->id, CallOptions::create()->ifNoneMatch($etag));
+            self::fail('expected NotModifiedException');
+        } catch (NotModifiedException) {
+        }
         $listed = $client->reviews()->list(['entity_id' => $entity->id, 'has_media' => true]);
         self::assertSame(1, $listed->pagination->count);
         self::assertCount(2, $listed->items[0]->media);

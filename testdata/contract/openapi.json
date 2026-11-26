@@ -1,6 +1,18 @@
 {
  "components": {
   "headers": {
+   "CacheControl": {
+    "description": "`private, max-age=60`.",
+    "schema": {
+     "type": "string"
+    }
+   },
+   "ETag": {
+    "description": "A strong validator; send it back as `If-None-Match`. Absent when a media URL in the body\ncould not be signed or expires too soon to outlive a revalidation (spec 5.3).\n",
+    "schema": {
+     "type": "string"
+    }
+   },
    "RetryAfter": {
     "description": "Seconds to wait before retrying.",
     "schema": {
@@ -40,6 +52,14 @@
     "required": true,
     "schema": {
      "format": "uuid",
+     "type": "string"
+    }
+   },
+   "IfNoneMatch": {
+    "description": "ETags from earlier responses (a list, weak or strong, or `*`); a match answers 304.\n",
+    "in": "header",
+    "name": "If-None-Match",
+    "schema": {
      "type": "string"
     }
    },
@@ -215,6 +235,17 @@
      }
     },
     "description": "`not_found`: missing, or outside the key's tenant, application or namespace."
+   },
+   "NotModified": {
+    "description": "Unchanged since the `If-None-Match` ETag; no body.",
+    "headers": {
+     "Cache-Control": {
+      "$ref": "#/components/headers/CacheControl"
+     },
+     "ETag": {
+      "$ref": "#/components/headers/ETag"
+     }
+    }
    },
    "PayloadTooLarge": {
     "content": {
@@ -1786,7 +1817,7 @@
   },
   "summary": "Reviews, ratings and review media for any external entity.",
   "title": "Octoreview API",
-  "version": "1.0.0-rc.3"
+  "version": "1.0.0-rc.4"
  },
  "openapi": "3.1.0",
  "paths": {
@@ -2504,6 +2535,9 @@
      },
      {
       "$ref": "#/components/parameters/IncludeGlobal"
+     },
+     {
+      "$ref": "#/components/parameters/IfNoneMatch"
      }
     ],
     "responses": {
@@ -2523,7 +2557,18 @@
         }
        }
       },
-      "description": "The summary."
+      "description": "The summary.",
+      "headers": {
+       "Cache-Control": {
+        "$ref": "#/components/headers/CacheControl"
+       },
+       "ETag": {
+        "$ref": "#/components/headers/ETag"
+       }
+      }
+     },
+     "304": {
+      "$ref": "#/components/responses/NotModified"
      },
      "401": {
       "$ref": "#/components/responses/Unauthorized"
@@ -2538,7 +2583,7 @@
       "$ref": "#/components/responses/Error"
      }
     },
-    "summary": "The entity's rating summary. Sends `Cache-Control: private, max-age=60`.",
+    "summary": "The entity's rating summary, with an `ETag` (304 on `If-None-Match`).",
     "tags": [
      "ratings"
     ]
@@ -2737,7 +2782,7 @@
   },
   "/reviews": {
    "get": {
-    "description": "Another `status`, `has_pending_revision` or `media_moderation_status` needs\n`reviews:moderate`, except the author path: `author_id` with `include_unpublished=true`\nreturns that author's non-removed reviews of any status. Sends\n`Cache-Control: private, max-age=60`.\n",
+    "description": "Another `status`, `has_pending_revision` or `media_moderation_status` needs\n`reviews:moderate`, except the author path: `author_id` with `include_unpublished=true`\nreturns that author's non-removed reviews of any status. Sends\n`Cache-Control: private, max-age=60` and an `ETag` (304 on `If-None-Match`).\n",
     "operationId": "listReviews",
     "parameters": [
      {
@@ -2856,6 +2901,9 @@
      },
      {
       "$ref": "#/components/parameters/Offset"
+     },
+     {
+      "$ref": "#/components/parameters/IfNoneMatch"
      }
     ],
     "responses": {
@@ -2867,7 +2915,18 @@
         }
        }
       },
-      "description": "A page of reviews with embedded media."
+      "description": "A page of reviews with embedded media.",
+      "headers": {
+       "Cache-Control": {
+        "$ref": "#/components/headers/CacheControl"
+       },
+       "ETag": {
+        "$ref": "#/components/headers/ETag"
+       }
+      }
+     },
+     "304": {
+      "$ref": "#/components/responses/NotModified"
      },
      "400": {
       "$ref": "#/components/responses/BadRequest"
@@ -3003,7 +3062,7 @@
     ]
    },
    "get": {
-    "description": "The author path (`author_id` equal to the review's author, with `include_unpublished=true`) returns author media URLs.",
+    "description": "The author path (`author_id` equal to the review's author, with `include_unpublished=true`)\nreturns author media URLs. Sends `Cache-Control: private, max-age=60` and an `ETag` (304\non `If-None-Match`).\n",
     "operationId": "getReview",
     "parameters": [
      {
@@ -3026,6 +3085,9 @@
      },
      {
       "$ref": "#/components/parameters/IncludeUnpublished"
+     },
+     {
+      "$ref": "#/components/parameters/IfNoneMatch"
      }
     ],
     "responses": {
@@ -3037,7 +3099,18 @@
         }
        }
       },
-      "description": "The review."
+      "description": "The review.",
+      "headers": {
+       "Cache-Control": {
+        "$ref": "#/components/headers/CacheControl"
+       },
+       "ETag": {
+        "$ref": "#/components/headers/ETag"
+       }
+      }
+     },
+     "304": {
+      "$ref": "#/components/responses/NotModified"
      },
      "401": {
       "$ref": "#/components/responses/Unauthorized"

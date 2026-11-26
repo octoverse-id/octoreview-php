@@ -16,15 +16,15 @@ PHP 8.2 or newer: PHP 8.1 reached end of life on 2025-12-31, so there is no olde
 
 | SDK | Server contract |
 | --- | --- |
-| unreleased (`main`) | `docs/openapi.yaml` at the commit in `testdata/contract/SOURCE` (server `1.0.0-rc.3`, the candidate `0.1.0` ships with) |
-| `0.1.0` | server `1.0.0-rc.3` (`docs/openapi.yaml` at `20aca25`) |
+| unreleased (`main`) | `docs/openapi.yaml` at the commit in `testdata/contract/SOURCE` (server `1.0.0-rc.4`) |
+| `0.1.0` | server `1.0.0-rc.3` (`docs/openapi.yaml` at `20aca25`); its integration suite also passes against `1.0.0-rc.4` |
 
 ## The server image CI runs against
 
 `SERVER_IMAGE` in the Makefile pins the `integration` job to one published image of the
-server: `ghcr.io/octoverse-id/octoreview:1.0.0-rc.3`, the release candidate `0.1.0` ships with
-(`1.0.0-rc.2` predates the paginated media list). Between releases it may pin a `sha-<commit>`
-image of the server's `main` branch instead. A bump PR moves it (and refreshes
+server: `ghcr.io/octoverse-id/octoreview:1.0.0-rc.4`, the latest release candidate (`0.1.0`
+shipped against `1.0.0-rc.3`; rc.4 adds ETag/304 on review and rating reads). Between releases
+it may pin a `sha-<commit>` image of the server's `main` branch instead. A bump PR moves it (and refreshes
 `testdata/contract` and `testdata/fixtures` with `make vendor-contract SERVER=<commit>` and
 `make fixtures`). The weekly `contract-drift`
 workflow runs the same suite against `:edge` and opens an issue when it fails.
