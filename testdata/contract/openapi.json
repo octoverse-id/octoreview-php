@@ -1817,7 +1817,7 @@
   },
   "summary": "Reviews, ratings and review media for any external entity.",
   "title": "Octoreview API",
-  "version": "1.0.0-rc.4"
+  "version": "1.0.0"
  },
  "openapi": "3.1.0",
  "paths": {

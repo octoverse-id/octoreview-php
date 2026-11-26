@@ -8,7 +8,7 @@ composer require octoverse-id/octoreview-php
 ```
 
 PHP 8.2 or newer; PSR-18, with Guzzle by default. `0.1.0` works with the server's
-`1.0.0-rc.3` and `1.0.0-rc.4` ([`docs/versioning.md`](docs/versioning.md)).
+`1.0.0`, `1.0.0-rc.3` and `1.0.0-rc.4` ([`docs/versioning.md`](docs/versioning.md)).
 
 ## Usage
 
